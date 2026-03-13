@@ -24,23 +24,25 @@
 ## 项目结构
 
 ```
-src/wechat_oa_reader/
-├── __init__.py     # 公开 API 导出
-├── models.py       # Pydantic 数据模型
-├── client.py       # WeChatClient（搜索/文章列表/内容抓取）
-├── auth.py         # 扫码登录 + 凭证存取（.env）
-├── fetcher.py      # HTTP 抓取（curl_cffi + httpx 降级 + 代理轮转）
-├── parser.py       # HTML 解析（正文/图片/纯文本）
-├── proxy.py        # 代理池（轮转 + 失败冷却）
-├── limiter.py      # 异步限频器（滑动窗口）
-├── store.py        # SQLite 文章缓存
-└── cli.py          # Click CLI（wechat-oa 命令）
+src/wechat_oa_reader/        # 核心库
+├── __init__.py, models.py, client.py, auth.py
+├── fetcher.py, parser.py, proxy.py, limiter.py
+├── store.py, cli.py
+skill/                        # Claude Code Skill
+├── SKILL.md                  # 工作流指引
+├── scripts/                  # 操作脚本（check_install/auth/login/search/list/fetch）
+└── evals/evals.json          # 测试用例
 ```
 
 ## 关键文档
 
 - PRD：`docs/PRD.md`
 - 技术规格：`docs/TECH_SPEC.md`
+- Claude Code Skill：`skill/SKILL.md`
+
+## CI
+
+- GitHub Actions：`.github/workflows/test.yml`（Python 3.10/3.11/3.12 矩阵）
 
 ## 关键约定
 

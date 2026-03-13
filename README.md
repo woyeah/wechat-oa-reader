@@ -88,6 +88,16 @@ client = WeChatClient(
 )
 ```
 
+## Claude Code Skill
+
+本项目自带 Claude Code Skill，可在 Claude Code 中直接操作公众号。安装 Skill 后，对 Claude 说：
+
+- "帮我搜索 XX 公众号"
+- "抓取这篇微信文章的内容：URL"
+- "列出 XX 公众号最近的文章"
+
+Claude 会自动检测安装、验证凭证、执行操作。Skill 文件在 `skill/` 目录。
+
 ## 开发
 
 ```bash
@@ -192,6 +202,16 @@ client = WeChatClient(
     rate_limit=RateLimitConfig(requests_per_minute=30),
 )
 ```
+
+## Claude Code Skill
+
+This project includes a Claude Code Skill for direct operation within Claude Code. After installing the skill, just say:
+
+- "Search for XX official account"
+- "Fetch this WeChat article: URL"
+- "List recent articles from XX account"
+
+Claude will auto-detect installation, verify credentials, and execute. Skill files are in `skill/`.
 
 ## Development
 
