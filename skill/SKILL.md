@@ -57,6 +57,8 @@ If the user already has token/cookie, they can use manual mode:
 python <skill-path>/scripts/login.py --manual --token TOKEN --cookie COOKIE
 ```
 
+Manual mode validates credentials with a lightweight API call after saving. If validation fails, the output includes a `warning` field — credentials are still saved but may not work.
+
 ### Step 4: Execute the requested operation
 
 Based on what the user asks for, run the appropriate script:
@@ -90,7 +92,7 @@ Reads URLs from a file (one per line) and fetches all articles.
 - **Search results and article lists**: Present as a markdown table to the user
 - **Article content (text)**: Show the plain text directly
 - **Article content (json)**: Show structured data or save to file as requested
-- **Errors**: Show the error message and suggest next steps
+- **Errors**: All scripts return JSON with `error` (message) and `error_code` (enum). Common codes: `auth_missing`, `auth_expired`, `rate_limited`, `network_error`, `fetch_failed`, `invalid_input`. Show the message and suggest next steps based on the code.
 
 ## Common workflows
 
@@ -106,6 +108,6 @@ Reads URLs from a file (one per line) and fetches all articles.
 ## Important notes
 
 - All scripts use UTF-8 output encoding, avoiding Windows GBK issues
-- Token expires after ~4 days; if operations fail with auth errors, re-run login
+- Token expires after ~4 days; if `error_code` is `auth_expired`, re-run login
 - Rate limiting is built into the library (10 req/min, 3s between articles) — do not add extra delays
 - The `.env` file contains credentials and should not be committed to git
