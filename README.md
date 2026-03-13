@@ -88,15 +88,32 @@ client = WeChatClient(
 )
 ```
 
-## Claude Code Skill
+## Claude Code Plugin
 
-本项目自带 Claude Code Skill，可在 Claude Code 中直接操作公众号。安装 Skill 后，对 Claude 说：
+本项目同时是一个标准 [Claude Code Plugin](https://code.claude.com/docs/en/plugins)，可在 Claude Code 中直接操作微信公众号。
+
+**安装：**
+
+```bash
+# 开发/测试
+claude --plugin-dir /path/to/wechat-oa-reader
+
+# 或通过 marketplace 安装（如已发布）
+/plugin install wechat-oa-reader
+```
+
+**使用 — 对 Claude 说：**
 
 - "帮我搜索 XX 公众号"
-- "抓取这篇微信文章的内容：URL"
 - "列出 XX 公众号最近的文章"
+- "抓取这篇微信文章的内容：URL"
+- "批量下载某公众号的文章"
 
-Claude 会自动检测安装、验证凭证、执行操作。Skill 文件在 `skill/` 目录。
+**工作流：** `check_install → check_auth → login（如需） → 执行操作`
+
+每次操作自动完成：安装检测 → 凭证验证（4 天有效期） → 登录（扫码 / 手动） → 搜索 / 列表 / 抓取。所有脚本返回结构化 JSON 错误（`error_code`：`auth_missing` · `auth_expired` · `rate_limited` · `fetch_failed` 等）。
+
+> 完整工作流、脚本参数和错误码详见 [`skills/wechat-oa-reader/SKILL.md`](skills/wechat-oa-reader/SKILL.md)
 
 ## 开发
 
@@ -203,15 +220,32 @@ client = WeChatClient(
 )
 ```
 
-## Claude Code Skill
+## Claude Code Plugin
 
-This project includes a Claude Code Skill for direct operation within Claude Code. After installing the skill, just say:
+This project doubles as a standard [Claude Code Plugin](https://code.claude.com/docs/en/plugins) for operating WeChat Official Accounts directly from Claude Code.
+
+**Installation:**
+
+```bash
+# Development / testing
+claude --plugin-dir /path/to/wechat-oa-reader
+
+# Or via marketplace (if published)
+/plugin install wechat-oa-reader
+```
+
+**Usage — just tell Claude:**
 
 - "Search for XX official account"
-- "Fetch this WeChat article: URL"
 - "List recent articles from XX account"
+- "Fetch this WeChat article: URL"
+- "Batch download articles from an account"
 
-Claude will auto-detect installation, verify credentials, and execute. Skill files are in `skill/`.
+**Workflow:** `check_install → check_auth → login (if needed) → execute`
+
+Auto-detects installation → validates credentials (4-day expiry) → login (QR / manual) → search / list / fetch. All scripts return structured JSON errors (`error_code`: `auth_missing` · `auth_expired` · `rate_limited` · `fetch_failed`, etc.).
+
+> Full workflow, script parameters, and error codes in [`skills/wechat-oa-reader/SKILL.md`](skills/wechat-oa-reader/SKILL.md)
 
 ## Development
 

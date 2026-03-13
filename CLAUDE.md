@@ -24,21 +24,22 @@
 ## 项目结构
 
 ```
-src/wechat_oa_reader/        # 核心库
+src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
 ├── store.py, cli.py
-skill/                        # Claude Code Skill
-├── SKILL.md                  # 工作流指引
-├── scripts/                  # 操作脚本（check_install/auth/login/search/list/fetch + _errors共享模块）
-└── evals/evals.json          # 测试用例（含量化 assertions）
+.claude-plugin/plugin.json               # Claude Code Plugin manifest
+skills/wechat-oa-reader/                 # Plugin skill
+├── SKILL.md                             # 工作流指引
+└── scripts/                             # 操作脚本（+ _errors 共享模块）
+evals/evals.json                         # Skill 测试用例（含量化 assertions）
 ```
 
 ## 关键文档
 
 - PRD：`docs/PRD.md`
 - 技术规格：`docs/TECH_SPEC.md`
-- Claude Code Skill：`skill/SKILL.md`
+- Claude Code Skill：`skills/wechat-oa-reader/SKILL.md`
 
 ## CI
 

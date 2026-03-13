@@ -1,0 +1,10 @@
+{
+  "name": "wechat-oa-reader",
+  "description": "Read and fetch WeChat Official Account articles — search accounts, list articles, and fetch full content directly from Claude Code",
+  "version": "0.1.0",
+  "author": {
+    "name": "woyeah"
+  },
+  "repository": "https://github.com/woyeah/wechat-oa-reader",
+  "license": "AGPL-3.0-only"
+}
