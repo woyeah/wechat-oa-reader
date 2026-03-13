@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wechat-oa-reader"
+version = "0.1.0"
+description = "Python library for reading WeChat Official Account articles"
+requires-python = ">=3.10"
+license = "AGPL-3.0-only"
+dependencies = [
+    "httpx>=0.25",
+    "curl_cffi>=0.7",
+    "pydantic>=2.0",
+    "python-dotenv>=1.0",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.scripts]
+wechat-oa = "wechat_oa_reader.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wechat_oa_reader"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["src"]
