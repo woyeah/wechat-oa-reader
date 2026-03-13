@@ -1,11 +1,11 @@
----
+﻿---
 name: wechat-oa-reader
 description: Read and fetch WeChat Official Account (微信公众号) articles. Use this skill whenever the user wants to search WeChat public accounts, list their articles, fetch article content, or log in to the WeChat MP backend. Also trigger when the user mentions 公众号, WeChat OA, wechat-oa-reader, or wants to scrape/extract data from WeChat articles. Do NOT use for general web scraping unrelated to WeChat Official Accounts.
 ---
 
 # wechat-oa-reader
 
-Operate the `wechat-oa-reader` Python library to search WeChat Official Accounts, list articles, and fetch full article content — directly from Claude.
+Operate the `wechat-oa-reader` CLI to search WeChat Official Accounts, list articles, and fetch full article content.
 
 ## Workflow
 
@@ -13,101 +13,101 @@ Every interaction follows this sequence. Do not skip steps.
 
 ### Step 1: Check installation
 
-Run `scripts/check_install.py` to verify the library is installed. If not, it will auto-install via pip.
-
 ```bash
-python <skill-path>/scripts/check_install.py
+pip show wechat-oa-reader || pip install wechat-oa-reader
 ```
 
 If installation fails, tell the user to install manually: `pip install wechat-oa-reader`
 
 ### Step 2: Check authentication
 
-Run `scripts/check_auth.py` to check credential status.
-
 ```bash
-python <skill-path>/scripts/check_auth.py
+wechat-oa status
 ```
 
-The script outputs JSON with a `status` field:
-- `"valid"` — credentials exist and not expired, proceed to Step 3
-- `"expired"` — credentials exist but expired, go to login
-- `"missing"` — no credentials found, go to login
+- If output shows `"authenticated": true` and not expired, proceed to Step 4
+- If output shows `Not authenticated` or expired, go to Step 3
 
 ### Step 3: Login (if needed)
 
-If credentials are missing or expired, run the login script:
+**QR code login (two-phase):**
 
+Phase 1 — Get the QR code:
 ```bash
-python <skill-path>/scripts/login.py
+python <skill-path>/scripts/login.py --start
 ```
-
 This will:
-1. Start the QR code login flow
-2. Save a QR code PNG to a temp file
-3. Print the file path
+- Automatically open the QR code image in the system viewer (Windows/macOS/Linux)
+- Print ASCII QR art to terminal as fallback
+- Output JSON with `qr_path` and `session_path` on the last line
 
-Tell the user: "Please open the QR code image at `<path>` and scan it with WeChat. I'll wait for you to complete the scan."
+Tell the user: "请扫描弹出的二维码登录，扫码后我会继续完成登录流程"
 
-The script blocks until the scan is complete, then saves credentials to `.env` in the current directory.
-
-If the user already has token/cookie, they can use manual mode:
-
+Phase 2 — Wait for scan and complete login:
 ```bash
-python <skill-path>/scripts/login.py --manual --token TOKEN --cookie COOKIE
+python <skill-path>/scripts/login.py --complete --session <session_path from JSON>
 ```
+This blocks until the user scans, then saves credentials to `.env`.
 
-Manual mode validates credentials with a lightweight API call after saving. If validation fails, the output includes a `warning` field — credentials are still saved but may not work.
+**Manual login (if user already has token/cookie):**
+```bash
+wechat-oa login --manual --token TOKEN --cookie COOKIE
+```
 
 ### Step 4: Execute the requested operation
 
-Based on what the user asks for, run the appropriate script:
-
 **Search for accounts:**
 ```bash
-python <skill-path>/scripts/search.py "公众号名称" [--count 5]
+wechat-oa search "公众号名称" --count 5
 ```
-Outputs a table of matching accounts with nickname, fakeid, and alias.
+Outputs JSON array of matching accounts with nickname, fakeid, and alias.
 
 **List articles:**
 ```bash
-python <skill-path>/scripts/list_articles.py FAKEID [--count 10] [--offset 0] [--keyword KEYWORD]
+wechat-oa articles FAKEID -n 10 --offset 0 --keyword KEYWORD
 ```
-Outputs a table of articles with title, date, and link.
+Outputs JSON with articles including title, date, and link.
 
-**Fetch article content:**
+**Fetch article content (plain text):**
 ```bash
-python <skill-path>/scripts/fetch_article.py URL [--format text|json] [--output FILE]
+wechat-oa fetch URL --text
 ```
-Default format is `text` (plain text). Use `--format json` for structured output with title, author, images, HTML, and plain text.
 
-**Batch fetch:**
+**Fetch article content (JSON with full metadata):**
 ```bash
-python <skill-path>/scripts/fetch_article.py --batch urls.txt [--format json] [--output FILE]
+wechat-oa fetch URL
 ```
-Reads URLs from a file (one per line) and fetches all articles.
+
+**Fetch and save to file:**
+```bash
+wechat-oa fetch URL -o output.txt --text
+```
+
+**Batch fetch from URL list:**
+```bash
+wechat-oa fetch --batch urls.txt --text
+```
 
 ## Output formatting
 
-- **Search results and article lists**: Present as a markdown table to the user
+- **Search results and article lists**: Present the JSON as a markdown table to the user
 - **Article content (text)**: Show the plain text directly
 - **Article content (json)**: Show structured data or save to file as requested
-- **Errors**: All scripts return JSON with `error` (message) and `error_code` (enum). Common codes: `auth_missing`, `auth_expired`, `rate_limited`, `network_error`, `fetch_failed`, `invalid_input`. Show the message and suggest next steps based on the code.
+- **Errors**: Show the error message and suggest next steps (e.g., re-login if auth expired)
 
 ## Common workflows
 
 **"帮我搜索某个公众号的最新文章":**
-1. check_install → check_auth → search → list_articles → fetch_article
+1. check install → status → search → articles → fetch
 
 **"抓取这篇公众号文章":**
-1. check_install → check_auth → fetch_article (with the URL)
+1. check install → status → fetch (with the URL)
 
 **"批量下载某公众号的文章":**
-1. check_install → check_auth → search → list_articles → save URLs → batch fetch
+1. check install → status → search → articles → save URLs to file → batch fetch
 
 ## Important notes
 
-- All scripts use UTF-8 output encoding, avoiding Windows GBK issues
-- Token expires after ~4 days; if `error_code` is `auth_expired`, re-run login
+- Token expires after ~4 days; if you get auth errors, re-run `wechat-oa login`
 - Rate limiting is built into the library (10 req/min, 3s between articles) — do not add extra delays
 - The `.env` file contains credentials and should not be committed to git

@@ -13,7 +13,7 @@
 ## 项目概述
 
 基于 [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)（AGPL-3.0）重构为可 `pip install` 的 async Python 库。
-**核心用途**：让 newfeather 项目自动抓取微信公众号的羽绒价格数据。
+**核心用途**：自动抓取微信公众号文章数据。
 
 ## 技术栈
 
@@ -27,7 +27,7 @@
 src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
-├── store.py, cli.py
+├── store.py, cli.py, py.typed
 .claude-plugin/plugin.json               # Claude Code Plugin manifest
 skills/wechat-oa-reader/                 # Plugin skill
 ├── SKILL.md                             # 工作流指引
@@ -40,6 +40,7 @@ evals/evals.json                         # Skill 测试用例（含量化 assert
 - PRD：`docs/PRD.md`
 - 技术规格：`docs/TECH_SPEC.md`
 - Claude Code Skill：`skills/wechat-oa-reader/SKILL.md`
+- README（英文主）：`README.md` ↔ 中文翻译：`docs/README_zh.md`（内容须同步）
 
 ## CI
 
@@ -51,6 +52,8 @@ evals/evals.json                         # Skill 测试用例（含量化 assert
 - **全 async**：API 均为 async，CLI 用 `asyncio.run()` 调用
 - **无单例/无 env 依赖**：核心模块通过构造函数注入配置
 - **编辑含中文文件后确保 UTF-8 编码**（Codex 有时输出带 BOM，须检查）
+- **文档修改直接编辑**：.md 文件不走 Codex，直接用 Edit/Write
+- **SKILL.md 基于 CLI**：使用 `wechat-oa` 命令而非 scripts，兼容所有 AI CLI
 
 ## 安装与测试
 

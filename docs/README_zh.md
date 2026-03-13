@@ -1,0 +1,139 @@
+# wechat-oa-reader
+
+**微信公众号文章读取 Python 异步库**
+
+[![Tests](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml/badge.svg)](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-green)](../LICENSE)
+
+[English](../README.md) | 中文
+
+扫码登录微信公众号后台，搜索公众号、获取文章列表、抓取完整内容 — 通过 **async API** 和 **CLI** 两种方式使用。基于 **curl_cffi** Chrome TLS 指纹模拟、**Pydantic v2** 数据模型、**httpx** 降级兜底。
+
+## 安装
+
+```bash
+pip install wechat-oa-reader
+```
+
+## 快速上手
+
+```python
+import asyncio
+from wechat_oa_reader import WeChatClient, load_credentials
+
+async def main():
+    creds = load_credentials()          # 从 .env 读取 token/cookie
+    client = await WeChatClient.from_credentials(creds)
+
+    # 搜索公众号
+    accounts = await client.search_accounts("公众号名称")
+    fakeid = accounts[0].fakeid
+
+    # 获取最近文章
+    articles = await client.get_articles(fakeid, count=5)
+
+    # 抓取文章内容
+    article = await client.fetch_article(articles.items[0].link)
+    print(article.title)
+    print(article.plain_text[:200])
+
+asyncio.run(main())
+```
+
+## 命令行
+
+```bash
+wechat-oa login                          # 扫码登录
+wechat-oa login --manual --token X --cookie Y  # 手动输入凭证
+wechat-oa search "公众号名称"              # 搜索公众号
+wechat-oa articles FAKEID -n 10          # 文章列表
+wechat-oa fetch URL                      # 抓取单篇文章
+wechat-oa fetch --batch urls.txt -o out.json   # 批量抓取
+wechat-oa status                         # 查看凭证状态
+```
+
+## 核心特性
+
+- **扫码登录** — 微信扫码认证，凭证自动存入 `.env`
+- **公众号搜索** — 按名称查找公众号，获取 fakeid
+- **文章列表** — 分页获取 + 关键词搜索
+- **内容提取** — 正文 HTML、纯文本、图片列表
+- **Chrome TLS 指纹** — curl_cffi `chrome120` 模拟，httpx 降级兜底
+- **代理轮转** — SOCKS5/HTTP 代理池，失败自动冷却
+- **异步限频** — 滑动窗口 + 文章间隔控制
+- **SQLite 缓存** — 可选 `ArticleStore` 持久化文章
+- **Token 管理** — 4 天有效期追踪，凭证存取
+
+## 配置
+
+凭证存储在 `.env` 文件中：
+
+| 变量 | 说明 |
+|------|------|
+| `WECHAT_TOKEN` | 公众号后台 token |
+| `WECHAT_COOKIE` | 会话 cookie |
+| `WECHAT_FAKEID` | 当前账号 fakeid |
+| `WECHAT_NICKNAME` | 账号昵称 |
+| `WECHAT_EXPIRE_TIME` | Token 过期时间戳（毫秒） |
+
+构造函数运行时配置：
+
+```python
+client = WeChatClient(
+    token="...",
+    cookie="...",
+    proxies=["socks5://127.0.0.1:1080"],
+    rate_limit=RateLimitConfig(requests_per_minute=30),
+)
+```
+
+## Claude Code Plugin
+
+本项目同时是一个标准 [Claude Code Plugin](https://code.claude.com/docs/en/plugins)，可在 Claude Code 中直接操作微信公众号。
+
+**安装：**
+
+```bash
+/plugin install https://github.com/woyeah/wechat-oa-reader
+```
+
+**使用 — 对 Claude 说：**
+
+- "帮我搜索 XX 公众号"
+- "列出 XX 公众号最近的文章"
+- "抓取这篇微信文章的内容：URL"
+- "批量下载某公众号的文章"
+
+## 在其他 AI CLI 中使用
+
+安装库后，通过 @-mention SKILL.md 即可让任何 AI 助手使用本工具：
+
+```bash
+pip install wechat-oa-reader
+```
+
+然后在 AI CLI 中：
+
+```
+@path/to/SKILL.md 帮我搜索"人民日报"的文章
+```
+
+或直接告诉 AI 使用 `wechat-oa` 命令。
+
+> 完整工作流详见 [`skills/wechat-oa-reader/SKILL.md`](../skills/wechat-oa-reader/SKILL.md)
+
+## 开发
+
+```bash
+pip install -e ".[dev]"
+python -m pytest tests/ -v    # 67 tests
+```
+
+## 许可证
+
+AGPL-3.0-only — 继承自上游 [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)。
+
+## 致谢
+
+基于 [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)（tmwgsicp）构建。

@@ -7,6 +7,12 @@ wechat-oa-reader/
 ├── pyproject.toml
 ├── LICENSE                      # AGPL-3.0
 ├── README.md
+├── .claude-plugin/
+│   └── plugin.json              # Claude Code Plugin manifest
+├── skills/
+│   └── wechat-oa-reader/
+│       ├── SKILL.md             # AI skill workflow
+│       └── scripts/             # Plugin scripts
 ├── docs/
 │   ├── PRD.md
 │   └── TECH_SPEC.md
@@ -21,7 +27,8 @@ wechat-oa-reader/
 │       ├── proxy.py             # 代理池管理
 │       ├── limiter.py           # 限频器
 │       ├── store.py             # SQLite 缓存（可选）
-│       └── cli.py               # Click CLI 入口
+│       ├── cli.py               # Click CLI 入口
+│       └── py.typed             # PEP 561 type marker
 └── tests/
     ├── __init__.py
     ├── conftest.py
