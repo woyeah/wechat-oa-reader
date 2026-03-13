@@ -30,8 +30,8 @@ src/wechat_oa_reader/        # 核心库
 ├── store.py, cli.py
 skill/                        # Claude Code Skill
 ├── SKILL.md                  # 工作流指引
-├── scripts/                  # 操作脚本（check_install/auth/login/search/list/fetch）
-└── evals/evals.json          # 测试用例
+├── scripts/                  # 操作脚本（check_install/auth/login/search/list/fetch + _errors共享模块）
+└── evals/evals.json          # 测试用例（含量化 assertions）
 ```
 
 ## 关键文档
