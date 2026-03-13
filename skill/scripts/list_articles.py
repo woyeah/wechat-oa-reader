@@ -7,6 +7,9 @@ import sys
 from datetime import datetime, timezone
 
 sys.stdout.reconfigure(encoding="utf-8")
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+from _errors import classify_error
 
 from wechat_oa_reader.auth import load_credentials
 from wechat_oa_reader.client import WeChatClient
@@ -31,7 +34,7 @@ def main():
 
     creds = load_credentials()
     if not creds:
-        print(json.dumps({"error": "Not authenticated. Run login first."}))
+        print(json.dumps({"error": "Not authenticated. Run login first.", "error_code": "auth_missing"}))
         sys.exit(1)
 
     client = WeChatClient(token=creds.token, cookie=creds.cookie)
@@ -44,7 +47,7 @@ def main():
             keyword=args.keyword,
         ))
     except Exception as e:
-        print(json.dumps({"error": str(e)}))
+        print(json.dumps(classify_error(e)))
         sys.exit(1)
 
     articles = []

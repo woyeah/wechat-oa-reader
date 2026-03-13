@@ -5,19 +5,35 @@
       "id": 0,
       "prompt": "帮我搜索一下'新华社'的公众号，告诉我它的fakeid",
       "expected_output": "返回新华社的公众号信息表格，包含 fakeid",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"text": "Output contains a fakeid value (base64-like string)", "type": "regex", "pattern": "[A-Za-z0-9+/=]{8,}"},
+        {"text": "Output mentions 新华社", "type": "contains", "value": "新华社"},
+        {"text": "Output includes structured format (table or labeled field)", "type": "regex", "pattern": "(fakeid|\\|.*\\|)"}
+      ]
     },
     {
       "id": 1,
       "prompt": "抓取这篇微信公众号文章的内容：https://mp.weixin.qq.com/s/cqReGFmQPdsaYqyVFuJlLg",
       "expected_output": "返回文章的纯文本内容，包含标题",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"text": "Output contains article title as heading", "type": "regex", "pattern": "^#\\s+.+"},
+        {"text": "Output contains substantial text (>100 chars of content)", "type": "min_length", "value": 200},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error\""}
+      ]
     },
     {
       "id": 2,
       "prompt": "帮我看看新华社公众号最近发了什么文章，列出最新5篇",
       "expected_output": "先搜索新华社获取fakeid，然后列出最新5篇文章的标题和日期",
-      "files": []
+      "files": [],
+      "assertions": [
+        {"text": "Output contains human-readable dates (YYYY-MM-DD format)", "type": "regex", "pattern": "20\\d{2}-\\d{2}-\\d{2}"},
+        {"text": "Output lists multiple articles (at least 3 titles)", "type": "min_occurrences", "pattern": "\\|.*\\|", "count": 3},
+        {"text": "Output mentions 新华社", "type": "contains", "value": "新华社"},
+        {"text": "Output does NOT contain raw Unix timestamps (10+ consecutive digits)", "type": "not_regex", "pattern": "\\b1[0-9]{9}\\b"}
+      ]
     }
   ]
 }

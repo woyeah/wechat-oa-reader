@@ -7,6 +7,9 @@ import sys
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+from _errors import classify_error
 
 from wechat_oa_reader.auth import load_credentials
 from wechat_oa_reader.client import WeChatClient
@@ -21,12 +24,12 @@ def main():
     args = parser.parse_args()
 
     if not args.url and not args.batch:
-        print(json.dumps({"error": "Provide a URL or --batch file"}))
+        print(json.dumps({"error": "Provide a URL or --batch file", "error_code": "invalid_input"}))
         sys.exit(1)
 
     creds = load_credentials()
     if not creds:
-        print(json.dumps({"error": "Not authenticated. Run login first."}))
+        print(json.dumps({"error": "Not authenticated. Run login first.", "error_code": "auth_missing"}))
         sys.exit(1)
 
     client = WeChatClient(token=creds.token, cookie=creds.cookie)
@@ -47,14 +50,17 @@ def main():
         else:
             article = asyncio.run(client.fetch_article(args.url))
             if not article:
-                print(json.dumps({"error": "Failed to fetch article"}))
+                print(json.dumps({
+                    "error": "Failed to fetch article. The page may require authentication or the URL may be invalid.",
+                    "error_code": "fetch_failed",
+                }))
                 sys.exit(1)
             if args.format == "text":
                 content = f"# {article.title or 'Untitled'}\n\n{article.plain_text}"
             else:
                 content = json.dumps(article.model_dump(), ensure_ascii=False, indent=2)
     except Exception as e:
-        print(json.dumps({"error": str(e)}))
+        print(json.dumps(classify_error(e)))
         sys.exit(1)
 
     if args.output:
