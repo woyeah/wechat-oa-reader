@@ -13,6 +13,7 @@ from .models import (
     RateLimitConfig,
 )
 from .parser import extract_article_info, process_article_content
+from .store import ArticleStore
 
 __version__ = "0.1.0"
 
@@ -29,6 +30,7 @@ __all__ = [
     "login_with_qrcode",
     "save_credentials",
     "load_credentials",
+    "ArticleStore",
     "process_article_content",
     "extract_article_info",
 ]

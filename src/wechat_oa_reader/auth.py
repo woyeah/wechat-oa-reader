@@ -144,7 +144,7 @@ async def login_with_qrcode(
             cookie=cookie_str,
             fakeid=fakeid or None,
             nickname=nickname or None,
-            expire_time=int((time.time() + 30 * 24 * 3600) * 1000),
+            expire_time=int((time.time() + 4 * 24 * 3600) * 1000),
         )
 
 

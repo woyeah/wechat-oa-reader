@@ -23,23 +23,30 @@ def process_article_content(html: str) -> dict:
 
 
 def extract_content(html: str) -> str:
-    match = re.search(
-        r"<div[^>]*\bid=[\"']js_content[\"'][^>]*>(.*?)</div>",
-        html,
-        re.IGNORECASE | re.DOTALL,
-    )
-    if match:
-        return match.group(1).strip()
+    # Find the start of js_content div
+    match = re.search(r'<div[^>]*\bid=["\']js_content["\'][^>]*>', html, re.IGNORECASE)
+    if not match:
+        match = re.search(r'<div[^>]*\bclass=["\'][^"\']*rich_media_content[^"\']*["\'][^>]*>', html, re.IGNORECASE)
+    if not match:
+        return ""
 
-    match = re.search(
-        r"<div[^>]*\bclass=[\"'][^\"']*rich_media_content[^\"']*[\"'][^>]*>(.*?)</div>",
-        html,
-        re.IGNORECASE | re.DOTALL,
-    )
-    if match:
-        return match.group(1).strip()
-
-    return ""
+    start = match.end()
+    depth = 1
+    pos = start
+    while pos < len(html) and depth > 0:
+        open_match = re.search(r"<div[\s>]", html[pos:], re.IGNORECASE)
+        close_match = re.search(r"</div\s*>", html[pos:], re.IGNORECASE)
+        if close_match is None:
+            break
+        if open_match and open_match.start() < close_match.start():
+            depth += 1
+            pos += open_match.end()
+        else:
+            depth -= 1
+            if depth == 0:
+                return html[start : pos + close_match.start()].strip()
+            pos += close_match.end()
+    return html[start:].strip()
 
 
 def extract_images(html: str) -> list[str]:

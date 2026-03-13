@@ -64,9 +64,13 @@ class ArticleStore:
         try:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO accounts
-                (fakeid, nickname, alias, head_img, service_type, created_at)
+                INSERT INTO accounts (fakeid, nickname, alias, head_img, service_type, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(fakeid) DO UPDATE SET
+                    nickname = excluded.nickname,
+                    alias = excluded.alias,
+                    head_img = excluded.head_img,
+                    service_type = excluded.service_type
                 """,
                 (
                     account.fakeid,
@@ -78,7 +82,7 @@ class ArticleStore:
                 ),
             )
             conn.commit()
-            return conn.total_changes > 0
+            return True
         finally:
             conn.close()
 
@@ -110,7 +114,7 @@ class ArticleStore:
         inserted = 0
         try:
             for article in articles:
-                conn.execute(
+                cursor = conn.execute(
                     """
                     INSERT OR IGNORE INTO articles
                     (fakeid, aid, title, link, digest, cover, author, content, plain_content, publish_time, fetched_at)
@@ -130,7 +134,7 @@ class ArticleStore:
                         int(time.time()),
                     ),
                 )
-                if conn.total_changes > inserted:
+                if cursor.rowcount > 0:
                     inserted += 1
             conn.commit()
             return inserted

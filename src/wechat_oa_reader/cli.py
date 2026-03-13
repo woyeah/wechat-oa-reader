@@ -7,6 +7,7 @@ from pathlib import Path
 
 import click
 
+from . import __version__
 from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
 from .models import Credentials
@@ -20,6 +21,7 @@ def _load_client_or_exit() -> WeChatClient:
 
 
 @click.group()
+@click.version_option(version=__version__, prog_name="wechat-oa")
 def cli() -> None:
     """CLI for wechat-oa-reader."""
 

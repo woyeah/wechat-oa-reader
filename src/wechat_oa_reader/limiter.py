@@ -16,22 +16,26 @@ class RateLimiter:
         self._lock = asyncio.Lock()
 
     async def acquire(self) -> None:
-        async with self._lock:
-            now = time.time()
-            while self._requests and now - self._requests[0] > self._window:
-                self._requests.popleft()
-
-            if len(self._requests) >= self._limit:
-                sleep_time = self._window - (now - self._requests[0])
-                if sleep_time > 0:
-                    await asyncio.sleep(sleep_time)
-
-            self._requests.append(time.time())
+        while True:
+            async with self._lock:
+                now = time.time()
+                while self._requests and now - self._requests[0] > self._window:
+                    self._requests.popleft()
+                if len(self._requests) < self._limit:
+                    self._requests.append(time.time())
+                    return
+                sleep_time = self._window - (now - self._requests[0]) + 0.01
+            await asyncio.sleep(sleep_time)
 
     async def acquire_article(self) -> None:
         await self.acquire()
-        now = time.time()
-        elapsed = now - self._last_article
-        if elapsed < self._article_interval:
-            await asyncio.sleep(self._article_interval - elapsed)
-        self._last_article = time.time()
+        async with self._lock:
+            now = time.time()
+            elapsed = now - self._last_article
+            if elapsed < self._article_interval:
+                wait = self._article_interval - elapsed
+            else:
+                wait = 0.0
+            self._last_article = time.time()
+        if wait > 0:
+            await asyncio.sleep(wait)
