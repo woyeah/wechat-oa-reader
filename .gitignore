@@ -11,3 +11,4 @@ build/
 .tmp/
 .tmp2/
 .pytest_cache/
+wechat-oa-reader-workspace/

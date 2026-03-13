@@ -1,0 +1,23 @@
+{
+  "skill_name": "wechat-oa-reader",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我搜索一下'新华社'的公众号，告诉我它的fakeid",
+      "expected_output": "返回新华社的公众号信息表格，包含 fakeid",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "抓取这篇微信公众号文章的内容：https://mp.weixin.qq.com/s/cqReGFmQPdsaYqyVFuJlLg",
+      "expected_output": "返回文章的纯文本内容，包含标题",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我看看新华社公众号最近发了什么文章，列出最新5篇",
+      "expected_output": "先搜索新华社获取fakeid，然后列出最新5篇文章的标题和日期",
+      "files": []
+    }
+  ]
+}

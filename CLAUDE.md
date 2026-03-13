@@ -13,7 +13,7 @@
 ## 项目概述
 
 基于 [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)（AGPL-3.0）重构为可 `pip install` 的 async Python 库。
-**核心用途**：让 newfeather 项目自动抓取唐贸羽绒城公众号的羽绒价格数据。
+**核心用途**：让 newfeather 项目自动抓取微信公众号的羽绒价格数据。
 
 ## 技术栈
 
