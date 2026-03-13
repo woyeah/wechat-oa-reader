@@ -8,6 +8,7 @@ build/
 *.db
 .venv/
 .test_tmp/
+test_tmp/
 .tmp/
 .tmp2/
 .pytest_cache/
