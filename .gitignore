@@ -13,3 +13,8 @@ test_tmp/
 .tmp2/
 .pytest_cache/
 wechat-oa-reader-workspace/
+article_output.txt
+slide_qa/
+unpacked_ey/
+uv.lock
+prompt.txt
