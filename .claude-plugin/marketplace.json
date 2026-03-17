@@ -1,5 +1,8 @@
 {
   "name": "woyeah-wechat-oa-reader",
+  "owner": {
+    "name": "woyeah"
+  },
   "description": "WeChat Official Account article reader plugin marketplace",
   "plugins": [
     {
