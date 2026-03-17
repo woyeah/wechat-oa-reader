@@ -95,7 +95,8 @@ client = WeChatClient(
 **安装：**
 
 ```bash
-/plugin install https://github.com/woyeah/wechat-oa-reader
+/plugin marketplace add woyeah/wechat-oa-reader
+/plugin install wechat-oa-reader
 ```
 
 **使用 — 对 Claude 说：**
@@ -127,7 +128,7 @@ pip install wechat-oa-reader
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 67 tests
+python -m pytest tests/ -v    # 92 tests
 ```
 
 ## 许可证

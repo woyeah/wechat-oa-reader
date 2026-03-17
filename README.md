@@ -95,7 +95,8 @@ This project doubles as a standard [Claude Code Plugin](https://code.claude.com/
 **Installation:**
 
 ```bash
-/plugin install https://github.com/woyeah/wechat-oa-reader
+/plugin marketplace add woyeah/wechat-oa-reader
+/plugin install wechat-oa-reader
 ```
 
 **Usage — just tell Claude:**
@@ -127,7 +128,7 @@ Or simply tell the AI to use the `wechat-oa` commands.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 67 tests
+python -m pytest tests/ -v    # 92 tests
 ```
 
 ## License
