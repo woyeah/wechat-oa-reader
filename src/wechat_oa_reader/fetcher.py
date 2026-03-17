@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import warnings
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -58,6 +59,11 @@ class Fetcher:
         self._rate_limiter = rate_limiter
         self._executor = ThreadPoolExecutor(max_workers=4)
         self._verify_ssl = verify_ssl
+        if not verify_ssl:
+            warnings.warn(
+                "SSL verification is disabled — connections are vulnerable to MITM attacks",
+                stacklevel=2,
+            )
 
     async def fetch_page(self, url: str, extra_headers: dict[str, str] | None = None, timeout: int = 30) -> str:
         if self._rate_limiter:
@@ -76,7 +82,7 @@ class Fetcher:
                     content = await self._do_fetch(url, headers, timeout, proxy)
                     self._proxy_pool.mark_ok(proxy)
                     return content
-                except Exception:
+                except (httpx.HTTPError, httpx.StreamError, OSError, TimeoutError):
                     self._proxy_pool.mark_failed(proxy)
 
         return await self._do_fetch(url, headers, timeout, None)
@@ -118,14 +124,14 @@ class Fetcher:
                         if "js_content" not in html:
                             return None
                         return html
-                    except Exception:
+                    except (httpx.HTTPError, httpx.StreamError, OSError, TimeoutError):
                         self._proxy_pool.mark_failed(proxy)
 
             html = await self._do_fetch(full_url, headers, timeout, None)
             if "js_content" not in html:
                 return None
             return html
-        except Exception:
+        except (httpx.HTTPError, httpx.StreamError, OSError, TimeoutError):
             return None
 
     async def fetch_articles_batch(

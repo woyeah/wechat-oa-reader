@@ -3,11 +3,23 @@ from __future__ import annotations
 
 import threading
 import time
+import urllib.parse
 
 
 class ProxyPool:
     def __init__(self, proxies: list[str] | None = None, fail_cooldown: int = 120):
         self._proxies = list(proxies or [])
+        if self._proxies:
+            for proxy in self._proxies:
+                scheme = urllib.parse.urlparse(proxy).scheme.lower()
+                if not scheme:
+                    raise ValueError(
+                        f"Invalid proxy URL (no scheme): {proxy}. Allowed: http, https, socks5, socks5h"
+                    )
+                if scheme not in ("http", "https", "socks5", "socks5h"):
+                    raise ValueError(
+                        f"Invalid proxy scheme '{scheme}' in: {proxy}. Allowed: http, https, socks5, socks5h"
+                    )
         self._index = 0
         self._fail_until: dict[str, float] = {}
         self._lock = threading.Lock()

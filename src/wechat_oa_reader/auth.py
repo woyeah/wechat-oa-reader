@@ -62,11 +62,12 @@ async def start_qrcode_login() -> tuple[bytes, str]:
         )
         json.dump({"cookies": cookies_dict}, session_file)
         session_file.close()
+        os.chmod(session_file.name, 0o600)
 
         return qr_bytes, session_file.name
 
 
-async def complete_qrcode_login(session_path: str) -> Credentials:
+async def complete_qrcode_login(session_path: str, timeout: float = 300.0) -> Credentials:
     """Phase 2: poll for scan and complete login.
 
     Loads cookies from session file, returns Credentials.
@@ -86,8 +87,11 @@ async def complete_qrcode_login(session_path: str) -> Credentials:
                 "Referer": "https://mp.weixin.qq.com/",
                 "Origin": "https://mp.weixin.qq.com",
             }
+            started_at = time.time()
 
             while True:
+                if time.time() - started_at > timeout:
+                    raise TimeoutError("QR code login timeout")
                 ask_resp = await client.get(
                     f"{MP_BASE_URL}/cgi-bin/scanloginqrcode",
                     params={"action": "ask", "token": "", "lang": "zh_CN", "f": "json", "ajax": 1},

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from .models import Account
 class ArticleStore:
     def __init__(self, db_path: str = "wechat_articles.db"):
         self._db_path = Path(db_path)
+        self._lock = threading.Lock()
         self.init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
@@ -62,36 +64,38 @@ class ArticleStore:
     def save_account(self, account: Account) -> bool:
         conn = self._get_conn()
         try:
-            conn.execute(
-                """
-                INSERT INTO accounts (fakeid, nickname, alias, head_img, service_type, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(fakeid) DO UPDATE SET
-                    nickname = excluded.nickname,
-                    alias = excluded.alias,
-                    head_img = excluded.head_img,
-                    service_type = excluded.service_type
-                """,
-                (
-                    account.fakeid,
-                    account.nickname,
-                    account.alias or "",
-                    account.head_img or "",
-                    account.service_type or 0,
-                    int(time.time()),
-                ),
-            )
-            conn.commit()
-            return True
+            with self._lock:
+                conn.execute(
+                    """
+                    INSERT INTO accounts (fakeid, nickname, alias, head_img, service_type, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(fakeid) DO UPDATE SET
+                        nickname = excluded.nickname,
+                        alias = excluded.alias,
+                        head_img = excluded.head_img,
+                        service_type = excluded.service_type
+                    """,
+                    (
+                        account.fakeid,
+                        account.nickname,
+                        account.alias or "",
+                        account.head_img or "",
+                        account.service_type or 0,
+                        int(time.time()),
+                    ),
+                )
+                conn.commit()
+                return True
         finally:
             conn.close()
 
     def remove_account(self, fakeid: str) -> bool:
         conn = self._get_conn()
         try:
-            conn.execute("DELETE FROM accounts WHERE fakeid = ?", (fakeid,))
-            conn.commit()
-            return conn.total_changes > 0
+            with self._lock:
+                conn.execute("DELETE FROM accounts WHERE fakeid = ?", (fakeid,))
+                conn.commit()
+                return conn.total_changes > 0
         finally:
             conn.close()
 
@@ -113,31 +117,32 @@ class ArticleStore:
         conn = self._get_conn()
         inserted = 0
         try:
-            for article in articles:
-                cursor = conn.execute(
-                    """
-                    INSERT OR IGNORE INTO articles
-                    (fakeid, aid, title, link, digest, cover, author, content, plain_content, publish_time, fetched_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        fakeid,
-                        article.get("aid", ""),
-                        article.get("title", ""),
-                        article.get("link", ""),
-                        article.get("digest", ""),
-                        article.get("cover", ""),
-                        article.get("author", ""),
-                        article.get("content", ""),
-                        article.get("plain_content", article.get("plain_text", "")),
-                        article.get("publish_time", 0),
-                        int(time.time()),
-                    ),
-                )
-                if cursor.rowcount > 0:
-                    inserted += 1
-            conn.commit()
-            return inserted
+            with self._lock:
+                for article in articles:
+                    cursor = conn.execute(
+                        """
+                        INSERT OR IGNORE INTO articles
+                        (fakeid, aid, title, link, digest, cover, author, content, plain_content, publish_time, fetched_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            fakeid,
+                            article.get("aid", ""),
+                            article.get("title", ""),
+                            article.get("link", ""),
+                            article.get("digest", ""),
+                            article.get("cover", ""),
+                            article.get("author", ""),
+                            article.get("content", ""),
+                            article.get("plain_content", article.get("plain_text", "")),
+                            article.get("publish_time", 0),
+                            int(time.time()),
+                        ),
+                    )
+                    if cursor.rowcount > 0:
+                        inserted += 1
+                conn.commit()
+                return inserted
         finally:
             conn.close()
 
