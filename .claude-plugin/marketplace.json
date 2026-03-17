@@ -1,0 +1,11 @@
+{
+  "name": "woyeah-wechat-oa-reader",
+  "description": "WeChat Official Account article reader plugin marketplace",
+  "plugins": [
+    {
+      "name": "wechat-oa-reader",
+      "description": "Read and fetch WeChat Official Account articles — search accounts, list articles, and fetch full content directly from Claude Code",
+      "source": "./"
+    }
+  ]
+}
