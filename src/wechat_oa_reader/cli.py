@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import urllib.parse
 from pathlib import Path
 
 import click
@@ -11,6 +12,21 @@ from . import __version__
 from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
 from .models import Credentials
+
+
+def _validate_urls(urls: list[str]) -> list[str]:
+    valid_urls: list[str] = []
+    for raw_url in urls:
+        url = raw_url.strip()
+        if not url:
+            continue
+        scheme = urllib.parse.urlparse(url).scheme.lower()
+        if scheme not in ("http", "https"):
+            raise click.BadParameter(
+                f"Invalid URL scheme '{scheme}' in: {url}. Only http/https allowed."
+            )
+        valid_urls.append(url)
+    return valid_urls
 
 
 def _load_client_or_exit() -> WeChatClient:
@@ -83,7 +99,7 @@ def fetch(url: str | None, batch_file: Path | None, output: Path | None, as_text
     client = _load_client_or_exit()
 
     if batch_file:
-        urls = [line.strip() for line in batch_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+        urls = _validate_urls(batch_file.read_text(encoding="utf-8").splitlines())
         items = asyncio.run(client.fetch_articles(urls))
         payload = [item.plain_text if as_text else item.model_dump() for item in items]
     else:
