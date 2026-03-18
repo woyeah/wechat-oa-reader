@@ -1,14 +1,25 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "woyeah-wechat-oa-reader",
   "owner": {
-    "name": "woyeah"
+    "name": "woyeah",
+    "url": "https://github.com/woyeah"
   },
   "description": "WeChat Official Account article reader plugin marketplace",
   "plugins": [
     {
       "name": "wechat-oa-reader",
       "description": "Read and fetch WeChat Official Account articles — search accounts, list articles, and fetch full content directly from Claude Code",
-      "source": "./"
+      "source": "./plugins/wechat-oa-reader",
+      "version": "0.1.0",
+      "category": "productivity",
+      "homepage": "https://github.com/woyeah/wechat-oa-reader",
+      "tags": [
+        "skill",
+        "wechat",
+        "article-reader",
+        "scraper"
+      ]
     }
   ]
 }

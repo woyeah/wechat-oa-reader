@@ -28,10 +28,12 @@ src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
 ├── store.py, cli.py, py.typed
-.claude-plugin/plugin.json               # Claude Code Plugin manifest
-skills/wechat-oa-reader/                 # Plugin skill
-├── SKILL.md                             # 工作流指引
-└── scripts/                             # 操作脚本（+ _errors 共享模块）
+.claude-plugin/marketplace.json          # Marketplace manifest
+plugins/wechat-oa-reader/                # Plugin（嵌套结构）
+├── .claude-plugin/plugin.json           # Plugin manifest
+└── skills/wechat-oa-reader/             # Skill
+    ├── SKILL.md                         # 工作流指引
+    └── scripts/                         # 操作脚本（+ _errors 共享模块）
 evals/evals.json                         # Skill 测试用例（含量化 assertions）
 ```
 
@@ -39,7 +41,7 @@ evals/evals.json                         # Skill 测试用例（含量化 assert
 
 - PRD：`docs/PRD.md`
 - 技术规格：`docs/TECH_SPEC.md`
-- Claude Code Skill：`skills/wechat-oa-reader/SKILL.md`
+- Claude Code Skill：`plugins/wechat-oa-reader/skills/wechat-oa-reader/SKILL.md`
 - README（英文主）：`README.md` ↔ 中文翻译：`docs/README_zh.md`（内容须同步）
 
 ## CI
