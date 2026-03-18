@@ -69,7 +69,7 @@ def _mock_async_client(*, ask_status: int = 1, qr_bytes: bytes = b"fake_png") ->
 
 
 def _load_login_script_module():
-    script_path = Path(__file__).resolve().parents[1] / "skills" / "wechat-oa-reader" / "scripts" / "login.py"
+    script_path = Path(__file__).resolve().parents[1] / "plugins" / "wechat-oa-reader" / "skills" / "wechat-oa-reader" / "scripts" / "login.py"
     module_name = f"test_login_script_{uuid4().hex}"
     spec = importlib.util.spec_from_file_location(module_name, script_path)
     assert spec is not None and spec.loader is not None
