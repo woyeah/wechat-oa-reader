@@ -1,4 +1,4 @@
-﻿---
+---
 name: wechat-oa-reader
 description: Read and fetch WeChat Official Account (微信公众号) articles. Use this skill whenever the user wants to search WeChat public accounts, list their articles, fetch article content, or log in to the WeChat MP backend. Also trigger when the user mentions 公众号, WeChat OA, wechat-oa-reader, or wants to scrape/extract data from WeChat articles. Do NOT use for general web scraping unrelated to WeChat Official Accounts.
 ---
