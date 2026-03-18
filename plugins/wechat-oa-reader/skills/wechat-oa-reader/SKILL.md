@@ -11,7 +11,7 @@ Operate the `wechat-oa-reader` CLI to search WeChat Official Accounts, list arti
 
 Every interaction follows this sequence. Do not skip steps.
 
-### Step 1: Check installation
+### Step 1: Check installation and CLI
 
 ```bash
 pip show wechat-oa-reader || pip install wechat-oa-reader
@@ -19,10 +19,17 @@ pip show wechat-oa-reader || pip install wechat-oa-reader
 
 If installation fails, tell the user to install manually: `pip install wechat-oa-reader`
 
+Then detect which CLI command works and use it for all subsequent steps:
+```bash
+wechat-oa --version 2>/dev/null && WOA="wechat-oa" || WOA="python -m wechat_oa_reader"
+```
+
+Use `$WOA` in place of `wechat-oa` for all commands below. If running on Windows and `$WOA` doesn't work, fall back to `python -m wechat_oa_reader` directly.
+
 ### Step 2: Check authentication
 
 ```bash
-wechat-oa status
+$WOA status
 ```
 
 - If output shows `"authenticated": true` and not expired, proceed to Step 4
@@ -51,41 +58,41 @@ This blocks until the user scans, then saves credentials to `.env`.
 
 **Manual login (if user already has token/cookie):**
 ```bash
-wechat-oa login --manual --token TOKEN --cookie COOKIE
+$WOA login --manual --token TOKEN --cookie COOKIE
 ```
 
 ### Step 4: Execute the requested operation
 
 **Search for accounts:**
 ```bash
-wechat-oa search "公众号名称" --count 5
+$WOA search "公众号名称" --count 5
 ```
 Outputs JSON array of matching accounts with nickname, fakeid, and alias.
 
 **List articles:**
 ```bash
-wechat-oa articles FAKEID -n 10 --offset 0 --keyword KEYWORD
+$WOA articles FAKEID -n 10 --offset 0 --keyword KEYWORD
 ```
 Outputs JSON with articles including title, date, and link.
 
 **Fetch article content (plain text):**
 ```bash
-wechat-oa fetch URL --text
+$WOA fetch URL --text
 ```
 
 **Fetch article content (JSON with full metadata):**
 ```bash
-wechat-oa fetch URL
+$WOA fetch URL
 ```
 
 **Fetch and save to file:**
 ```bash
-wechat-oa fetch URL -o output.txt --text
+$WOA fetch URL -o output.txt --text
 ```
 
 **Batch fetch from URL list:**
 ```bash
-wechat-oa fetch --batch urls.txt --text
+$WOA fetch --batch urls.txt --text
 ```
 
 ## Output formatting
@@ -108,6 +115,6 @@ wechat-oa fetch --batch urls.txt --text
 
 ## Important notes
 
-- Token expires after ~4 days; if you get auth errors, re-run `wechat-oa login`
+- Token expires after ~4 days; if you get auth errors, re-run `$WOA login`
 - Rate limiting is built into the library (10 req/min, 3s between articles) — do not add extra delays
 - The `.env` file contains credentials and should not be committed to git
