@@ -1,7 +1,7 @@
 {
   "name": "wechat-oa-reader",
   "description": "Read and fetch WeChat Official Account articles and Knowledge Planet (知识星球/zsxq) content — search accounts, list articles, fetch full content, browse zsxq topics and attachments directly from Claude Code",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "woyeah",
     "url": "https://github.com/woyeah"
