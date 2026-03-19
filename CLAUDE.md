@@ -13,7 +13,7 @@
 ## 项目概述
 
 基于 [wechat-download-api](https://github.com/tmwgsicp/wechat-download-api)（AGPL-3.0）重构为可 `pip install` 的 async Python 库。
-**核心用途**：自动抓取微信公众号文章数据。
+**核心用途**：自动抓取微信公众号文章数据 + 知识星球（zsxq）内容。
 
 ## 技术栈
 
@@ -31,10 +31,12 @@ src/wechat_oa_reader/                    # Python 包（pip install）
 .claude-plugin/marketplace.json          # Marketplace manifest
 plugins/wechat-oa-reader/                # Plugin（嵌套结构）
 ├── .claude-plugin/plugin.json           # Plugin manifest
-└── skills/wechat-oa-reader/             # Skill
-    ├── SKILL.md                         # 工作流指引
-    └── scripts/                         # 操作脚本（+ _errors 共享模块）
-evals/evals.json                         # Skill 测试用例（含量化 assertions）
+└── skills/
+    ├── wechat-oa-reader/                # 微信公众号 Skill
+    │   ├── SKILL.md, scripts/
+    └── zsxq-reader/                     # 知识星球 Skill
+        ├── SKILL.md, scripts/
+evals/evals.json, zsxq-evals.json       # Skill 测试用例
 ```
 
 ## 关键文档
@@ -60,9 +62,12 @@ evals/evals.json                         # Skill 测试用例（含量化 assert
 ## 安装与测试
 
 ```bash
-pip install -e ".[dev]"          # 安装（含 pytest）
-python -m pytest tests/ -v       # 运行测试（67 tests）
+uv pip install -e ".[dev]"       # 安装（含 pytest）
+.venv/Scripts/python -m pytest tests/ -v  # 运行测试（用 venv python）
 ```
+
+- **始终使用 `.venv/Scripts/python`** 运行 pytest 和脚本（避免 tmp_path 权限问题）
+- **用 `uv` 管理依赖**，不用 pip
 
 ## CLI
 

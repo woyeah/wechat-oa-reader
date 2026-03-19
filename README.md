@@ -1,6 +1,6 @@
 # wechat-oa-reader
 
-**Async Python library for reading WeChat Official Account articles.**
+**Async Python library for reading WeChat Official Account articles and Knowledge Planet (知识星球/zsxq) content.**
 
 [![Tests](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml/badge.svg)](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
@@ -8,7 +8,7 @@
 
 [中文](docs/README_zh.md) | English
 
-Scan QR code to log in, search accounts, list articles, and fetch full content — via **async API** and **CLI**. Built with **curl_cffi** for Chrome TLS fingerprinting, **Pydantic v2** for data models, and **httpx** as fallback.
+Scan QR code to log in, search accounts, list articles, and fetch full content — via **async API** and **CLI**. Also supports browsing Knowledge Planet (zsxq.com) groups, topics, and attachments. Built with **curl_cffi** for Chrome TLS fingerprinting, **Pydantic v2** for data models, and **httpx** as fallback.
 
 ## Install
 
@@ -64,6 +64,7 @@ wechat-oa status                         # show credential status
 - **Async rate limiting** — sliding window + per-article interval
 - **SQLite cache** — optional `ArticleStore` for article persistence
 - **Token management** — 4-day expiry tracking, credential save/load
+- **Knowledge Planet (zsxq)** — browse groups, list topics, fetch content, download attachments (cookie auth via `.env`)
 
 ## Configuration
 
@@ -76,6 +77,7 @@ Credentials stored in `.env`:
 | `WECHAT_FAKEID` | Your account's fakeid |
 | `WECHAT_NICKNAME` | Account nickname |
 | `WECHAT_EXPIRE_TIME` | Token expiry timestamp (ms) |
+| `ZSXQ_COOKIE` | Knowledge Planet session cookie (optional) |
 
 Runtime options via constructor:
 
@@ -105,6 +107,8 @@ This project doubles as a standard [Claude Code Plugin](https://code.claude.com/
 - "List recent articles from XX account"
 - "Fetch this WeChat article: URL"
 - "Batch download articles from an account"
+- "帮我看看知识星球的最新帖子"
+- "List topics from my Knowledge Planet group"
 
 ## Use with Other AI CLIs
 
@@ -128,7 +132,7 @@ Or simply tell the AI to use the `wechat-oa` commands.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 92 tests
+python -m pytest tests/ -v    # 112 tests
 ```
 
 ## License

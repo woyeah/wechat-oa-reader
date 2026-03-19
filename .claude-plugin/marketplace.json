@@ -5,11 +5,11 @@
     "name": "woyeah",
     "url": "https://github.com/woyeah"
   },
-  "description": "WeChat Official Account article reader plugin marketplace",
+  "description": "WeChat Official Account and Knowledge Planet (知识星球) content reader plugin marketplace",
   "plugins": [
     {
       "name": "wechat-oa-reader",
-      "description": "Read and fetch WeChat Official Account articles — search accounts, list articles, and fetch full content directly from Claude Code",
+      "description": "Read and fetch WeChat Official Account articles and Knowledge Planet (知识星球/zsxq) content — search accounts, list articles, browse topics, and fetch full content directly from Claude Code",
       "source": "./plugins/wechat-oa-reader",
       "version": "0.1.0",
       "category": "productivity",
@@ -18,7 +18,9 @@
         "skill",
         "wechat",
         "article-reader",
-        "scraper"
+        "scraper",
+        "zsxq",
+        "knowledge-planet"
       ]
     }
   ]

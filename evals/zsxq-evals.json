@@ -1,0 +1,38 @@
+{
+  "skill_name": "zsxq-reader",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我看看知识星球 123456789 里最新的帖子",
+      "expected_output": "返回星球帖子列表，以表格形式展示标题、作者、日期等信息",
+      "files": [],
+      "assertions": [
+        {"text": "Output contains a markdown table with rows", "type": "regex", "pattern": "\\|.*\\|"},
+        {"text": "Output contains human-readable dates (YYYY-MM-DD format)", "type": "regex", "pattern": "20\\d{2}-\\d{2}-\\d{2}"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error\""}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "获取知识星球帖子 481825282148254 的完整内容",
+      "expected_output": "返回帖子的完整内容，包含正文和评论",
+      "files": [],
+      "assertions": [
+        {"text": "Output contains substantial text (>100 chars of content)", "type": "min_length", "value": 200},
+        {"text": "Output contains author or content heading", "type": "regex", "pattern": "(作者|Author|#)"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error\""}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "帮我看看知识星球 123456789 的精华帖",
+      "expected_output": "返回星球精华帖列表",
+      "files": [],
+      "assertions": [
+        {"text": "Output contains a markdown table with rows", "type": "regex", "pattern": "\\|.*\\|"},
+        {"text": "Output mentions digest or scope", "type": "regex", "pattern": "(精华|digest|digests)"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error\""}
+      ]
+    }
+  ]
+}

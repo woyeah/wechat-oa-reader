@@ -1,6 +1,6 @@
 # wechat-oa-reader
 
-**微信公众号文章读取 Python 异步库**
+**微信公众号文章 + 知识星球内容读取 Python 异步库**
 
 [![Tests](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml/badge.svg)](https://github.com/woyeah/wechat-oa-reader/actions/workflows/test.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://python.org)
@@ -8,7 +8,7 @@
 
 [English](../README.md) | 中文
 
-扫码登录微信公众号后台，搜索公众号、获取文章列表、抓取完整内容 — 通过 **async API** 和 **CLI** 两种方式使用。基于 **curl_cffi** Chrome TLS 指纹模拟、**Pydantic v2** 数据模型、**httpx** 降级兜底。
+扫码登录微信公众号后台，搜索公众号、获取文章列表、抓取完整内容 — 通过 **async API** 和 **CLI** 两种方式使用。同时支持浏览知识星球（zsxq.com）的帖子、评论和附件。基于 **curl_cffi** Chrome TLS 指纹模拟、**Pydantic v2** 数据模型、**httpx** 降级兜底。
 
 ## 安装
 
@@ -64,6 +64,7 @@ wechat-oa status                         # 查看凭证状态
 - **异步限频** — 滑动窗口 + 文章间隔控制
 - **SQLite 缓存** — 可选 `ArticleStore` 持久化文章
 - **Token 管理** — 4 天有效期追踪，凭证存取
+- **知识星球** — 浏览星球、帖子列表、内容获取、附件下载（Cookie 认证，存入 `.env`）
 
 ## 配置
 
@@ -76,6 +77,7 @@ wechat-oa status                         # 查看凭证状态
 | `WECHAT_FAKEID` | 当前账号 fakeid |
 | `WECHAT_NICKNAME` | 账号昵称 |
 | `WECHAT_EXPIRE_TIME` | Token 过期时间戳（毫秒） |
+| `ZSXQ_COOKIE` | 知识星球会话 Cookie（可选） |
 
 构造函数运行时配置：
 
@@ -105,6 +107,8 @@ client = WeChatClient(
 - "列出 XX 公众号最近的文章"
 - "抓取这篇微信文章的内容：URL"
 - "批量下载某公众号的文章"
+- "帮我看看知识星球的最新帖子"
+- "获取知识星球某个帖子的完整内容"
 
 ## 在其他 AI CLI 中使用
 
@@ -128,7 +132,7 @@ pip install wechat-oa-reader
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 92 tests
+python -m pytest tests/ -v    # 112 tests
 ```
 
 ## 许可证
