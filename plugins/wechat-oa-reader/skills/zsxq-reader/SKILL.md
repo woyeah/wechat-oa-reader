@@ -11,6 +11,11 @@ Read topics, comments, and files from Knowledge Planet (知识星球) groups via
 
 Every interaction follows this sequence. Do not skip steps.
 
+**IMPORTANT:** All scripts read `ZSXQ_COOKIE` from the `.env` file in the current working directory. Before running any script, ensure your CWD is the project root (where `.env` lives):
+```bash
+cd /path/to/your/project
+```
+
 ### Step 1: Check authentication
 
 ```bash
