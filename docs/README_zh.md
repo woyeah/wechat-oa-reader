@@ -65,6 +65,7 @@ wechat-oa status                         # 查看凭证状态
 - **SQLite 缓存** — 可选 `ArticleStore` 持久化文章
 - **Token 管理** — 4 天有效期追踪，凭证存取
 - **知识星球** — 浏览星球、帖子列表、内容获取、附件下载（Cookie 认证，存入 `.env`）
+- **企业微信（WeCom）** — `WeComClient` 发送文本和图片消息，自动缓存 access_token
 
 ## 配置
 
@@ -128,11 +129,33 @@ pip install wechat-oa-reader
 
 > 完整工作流详见 [`skills/wechat-oa-reader/SKILL.md`](../skills/wechat-oa-reader/SKILL.md)
 
+## 企业微信（WeCom）集成
+
+```python
+import asyncio
+from wechat_oa_reader import WeComClient
+
+async def main():
+    client = WeComClient(
+        corp_id="your-corp-id",
+        agent_secret="your-agent-secret",
+        agent_id="your-agent-id",
+    )
+    await client.send_text("Hello from WeComClient!")
+
+    # 发送图片
+    with open("chart.png", "rb") as f:
+        media_id = await client.upload_media(f.read(), "chart.png")
+    await client.send_image(media_id)
+
+asyncio.run(main())
+```
+
 ## 开发
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 112 tests
+python -m pytest tests/ -v
 ```
 
 ## 许可证

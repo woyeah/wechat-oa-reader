@@ -14,6 +14,7 @@ from .models import (
 )
 from .parser import extract_article_info, process_article_content
 from .store import ArticleStore
+from .wecom import WeComClient
 
 __version__ = "0.1.0"
 
@@ -33,4 +34,5 @@ __all__ = [
     "ArticleStore",
     "process_article_content",
     "extract_article_info",
+    "WeComClient",
 ]

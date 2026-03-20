@@ -27,6 +27,7 @@
 src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
+├── wecom.py                             # 企业微信 WeComClient（文本/图片推送）
 ├── store.py, cli.py, py.typed
 .claude-plugin/marketplace.json          # Marketplace manifest
 plugins/wechat-oa-reader/                # Plugin（嵌套结构）

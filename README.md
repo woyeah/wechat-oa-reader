@@ -65,6 +65,7 @@ wechat-oa status                         # show credential status
 - **SQLite cache** — optional `ArticleStore` for article persistence
 - **Token management** — 4-day expiry tracking, credential save/load
 - **Knowledge Planet (zsxq)** — browse groups, list topics, fetch content, download attachments (cookie auth via `.env`)
+- **WeCom (企业微信)** — `WeComClient` for sending text and image messages via WeCom API, with automatic token caching
 
 ## Configuration
 
@@ -128,11 +129,33 @@ Or simply tell the AI to use the `wechat-oa` commands.
 
 > Full workflow details in [`skills/wechat-oa-reader/SKILL.md`](skills/wechat-oa-reader/SKILL.md)
 
+## WeCom (企业微信) Integration
+
+```python
+import asyncio
+from wechat_oa_reader import WeComClient
+
+async def main():
+    client = WeComClient(
+        corp_id="your-corp-id",
+        agent_secret="your-agent-secret",
+        agent_id="your-agent-id",
+    )
+    await client.send_text("Hello from WeComClient!")
+
+    # Send an image
+    with open("chart.png", "rb") as f:
+        media_id = await client.upload_media(f.read(), "chart.png")
+    await client.send_image(media_id)
+
+asyncio.run(main())
+```
+
 ## Development
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v    # 112 tests
+python -m pytest tests/ -v
 ```
 
 ## License
