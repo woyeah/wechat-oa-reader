@@ -1,4 +1,4 @@
-﻿# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, patch
@@ -111,7 +111,13 @@ def _comments_payload() -> dict:
     }
 
 
-def _search_payload() -> dict:
+def _search_payload(use_string_counts: bool = False) -> dict:
+    followers_count: int | str = 200
+    follow_count: int | str = 100
+    if use_string_counts:
+        followers_count = "1.58万"
+        follow_count = "320.5万"
+
     return {
         "ok": 1,
         "data": {
@@ -126,8 +132,8 @@ def _search_payload() -> dict:
                                 "screen_name": "found_user",
                                 "avatar_large": "https://example.com/a.jpg",
                                 "description": "desc",
-                                "followers_count": 200,
-                                "follow_count": 100,
+                                "followers_count": followers_count,
+                                "follow_count": follow_count,
                                 "verified": False,
                                 "verified_reason": "",
                             },
@@ -320,7 +326,7 @@ async def test_weibo_client_get_comments_with_max_id() -> None:
 async def test_weibo_client_search_users() -> None:
     client = WeiboClient(cookie="SUB=abc123")
 
-    with patch.object(client, "_request", new=AsyncMock(return_value=_search_payload())):
+    with patch.object(client, "_request", new=AsyncMock(return_value=_search_payload(use_string_counts=True))):
         users = await client.search_users("found")
 
     assert len(users) == 1
@@ -331,6 +337,17 @@ async def test_weibo_client_search_users() -> None:
     assert user.nickname == "found_user"
     assert user.avatar == "https://example.com/a.jpg"
     assert user.description == "desc"
-    assert user.followers_count == 200
-    assert user.following_count == 100
+    assert user.followers_count == 15800
+    assert user.following_count == 3205000
     assert user.verified is False
+
+
+def test_parse_count() -> None:
+    assert WeiboClient._parse_count(1000) == 1000
+    assert WeiboClient._parse_count("1.58万") == 15800
+    assert WeiboClient._parse_count("320.5万") == 3205000
+    assert WeiboClient._parse_count("1亿") == 100000000
+    assert WeiboClient._parse_count("2.5亿") == 250000000
+    assert WeiboClient._parse_count("1234") == 1234
+    assert WeiboClient._parse_count(None) is None
+    assert WeiboClient._parse_count("") is None

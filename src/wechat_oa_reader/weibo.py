@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
-from datetime import datetime
+import re
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 import httpx
@@ -123,10 +125,11 @@ class WeiboClient:
         ]
 
         cardlist_info = payload.get("cardlistInfo", {})
+        raw_since_id = cardlist_info.get("since_id")
         return WeiboPostList(
             items=items,
             total=cardlist_info.get("total"),
-            since_id=cardlist_info.get("since_id"),
+            since_id=str(raw_since_id) if raw_since_id is not None else None,
         )
 
     async def fetch_post(self, bid: str) -> WeiboPost:
@@ -187,18 +190,89 @@ class WeiboClient:
 
     @classmethod
     def _parse_datetime(cls, value: str) -> datetime:
-        return datetime.strptime(value, cls._DATETIME_FMT)
+        """Parse Weibo datetime strings including relative times like '刚刚', 'X分钟前', '今天 HH:MM'."""
+        _CST = timezone(timedelta(hours=8))
+        now = datetime.now(_CST)
+
+        if not value:
+            return now
+
+        # "刚刚" = just now
+        if value == "刚刚":
+            return now
+
+        # "X分钟前"
+        m = re.match(r"(\d+)分钟前", value)
+        if m:
+            return now - timedelta(minutes=int(m.group(1)))
+
+        # "X小时前"
+        m = re.match(r"(\d+)小时前", value)
+        if m:
+            return now - timedelta(hours=int(m.group(1)))
+
+        # "今天 HH:MM"
+        m = re.match(r"今天\s*(\d{1,2}):(\d{2})", value)
+        if m:
+            return now.replace(hour=int(m.group(1)), minute=int(m.group(2)), second=0, microsecond=0)
+
+        # "昨天 HH:MM"
+        m = re.match(r"昨天\s*(\d{1,2}):(\d{2})", value)
+        if m:
+            yesterday = now - timedelta(days=1)
+            return yesterday.replace(hour=int(m.group(1)), minute=int(m.group(2)), second=0, microsecond=0)
+
+        # "MM-DD" (this year)
+        m = re.match(r"(\d{1,2})-(\d{1,2})$", value)
+        if m:
+            return now.replace(month=int(m.group(1)), day=int(m.group(2)), hour=0, minute=0, second=0, microsecond=0)
+
+        # Standard format: "Mon Jan 01 08:00:00 +0800 2024"
+        try:
+            return datetime.strptime(value, cls._DATETIME_FMT)
+        except ValueError:
+            return now
 
     @staticmethod
-    def _parse_user(user_info: dict[str, Any]) -> WeiboUser:
+    def _parse_count(value: Any) -> int | None:
+        if isinstance(value, int):
+            return value
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            return None
+
+        raw = value.strip()
+        if not raw:
+            return None
+
+        multiplier = 1
+        number_part = raw
+        if raw.endswith("亿"):
+            multiplier = 100_000_000
+            number_part = raw[:-1].strip()
+        elif raw.endswith("万"):
+            multiplier = 10_000
+            number_part = raw[:-1].strip()
+
+        if not number_part:
+            return None
+
+        try:
+            return int(Decimal(number_part) * multiplier)
+        except (InvalidOperation, ValueError):
+            return None
+
+    @classmethod
+    def _parse_user(cls, user_info: dict[str, Any]) -> WeiboUser:
         verified_reason = user_info.get("verified_reason")
         return WeiboUser(
             uid=str(user_info.get("id", "")),
             nickname=user_info.get("screen_name", ""),
             avatar=user_info.get("avatar_large") or None,
             description=user_info.get("description") or None,
-            followers_count=user_info.get("followers_count"),
-            following_count=user_info.get("follow_count"),
+            followers_count=cls._parse_count(user_info.get("followers_count")),
+            following_count=cls._parse_count(user_info.get("follow_count")),
             verified=bool(user_info.get("verified")),
             verified_reason=verified_reason or None,
         )
