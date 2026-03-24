@@ -11,9 +11,15 @@ from .models import (
     Credentials,
     ProxyConfig,
     RateLimitConfig,
+    WeiboComment,
+    WeiboCommentList,
+    WeiboPost,
+    WeiboPostList,
+    WeiboUser,
 )
 from .parser import extract_article_info, process_article_content
 from .store import ArticleStore
+from .weibo import WeiboClient
 from .wecom import WeComClient
 
 __version__ = "0.1.0"
@@ -35,4 +41,10 @@ __all__ = [
     "process_article_content",
     "extract_article_info",
     "WeComClient",
+    "WeiboClient",
+    "WeiboUser",
+    "WeiboPost",
+    "WeiboPostList",
+    "WeiboComment",
+    "WeiboCommentList",
 ]

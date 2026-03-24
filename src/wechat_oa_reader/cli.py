@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import urllib.parse
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from . import __version__
 from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
 from .models import Credentials
+from .weibo import WeiboClient
 
 
 def _validate_urls(urls: list[str]) -> list[str]:
@@ -34,6 +36,16 @@ def _load_client_or_exit() -> WeChatClient:
     if not creds:
         raise click.ClickException("No credentials found. Run `wechat-oa login` first.")
     return WeChatClient(token=creds.token, cookie=creds.cookie)
+
+
+def _load_weibo_client_or_exit() -> WeiboClient:
+    from dotenv import dotenv_values
+
+    config = dotenv_values(".env")
+    cookie = config.get("WEIBO_COOKIE") or os.environ.get("WEIBO_COOKIE", "")
+    if not cookie:
+        raise click.ClickException("No WEIBO_COOKIE found. Set it in .env file.")
+    return WeiboClient(cookie=cookie)
 
 
 @click.group()
@@ -137,4 +149,76 @@ def status() -> None:
             ensure_ascii=False,
             indent=2,
         )
+    )
+
+
+@cli.group()
+def weibo() -> None:
+    """Weibo commands."""
+
+
+@weibo.command("status")
+def weibo_status() -> None:
+    """Check Weibo authentication status."""
+
+    client = _load_weibo_client_or_exit()
+    authenticated = asyncio.run(client.check_auth())
+    click.echo(json.dumps({"authenticated": authenticated}, ensure_ascii=False, indent=2))
+
+
+@weibo.command("user")
+@click.argument("uid")
+def weibo_user(uid: str) -> None:
+    """Get Weibo user info."""
+
+    client = _load_weibo_client_or_exit()
+    user = asyncio.run(client.get_user(uid))
+    click.echo(json.dumps(user.model_dump(), ensure_ascii=False, indent=2, default=str))
+
+
+@weibo.command("posts")
+@click.argument("uid")
+@click.option("-n", "count", default=20, type=int)
+def weibo_posts(uid: str, count: int) -> None:
+    """List Weibo posts by user."""
+
+    client = _load_weibo_client_or_exit()
+    posts = asyncio.run(client.get_posts(uid=uid, count=count))
+    click.echo(json.dumps(posts.model_dump(), ensure_ascii=False, indent=2, default=str))
+
+
+@weibo.command("fetch")
+@click.argument("bid")
+@click.option("--text", "as_text", is_flag=True, help="Output plain text only")
+def weibo_fetch(bid: str, as_text: bool) -> None:
+    """Fetch a single Weibo post."""
+
+    client = _load_weibo_client_or_exit()
+    post = asyncio.run(client.fetch_post(bid))
+    if as_text:
+        click.echo(post.text)
+        return
+    click.echo(json.dumps(post.model_dump(), ensure_ascii=False, indent=2, default=str))
+
+
+@weibo.command("comments")
+@click.argument("post_id")
+@click.option("-n", "count", default=20, type=int)
+def weibo_comments(post_id: str, count: int) -> None:
+    """Get comments for a Weibo post."""
+
+    client = _load_weibo_client_or_exit()
+    comments = asyncio.run(client.get_comments(post_id=post_id, count=count))
+    click.echo(json.dumps(comments.model_dump(), ensure_ascii=False, indent=2, default=str))
+
+
+@weibo.command("search")
+@click.argument("query")
+def weibo_search(query: str) -> None:
+    """Search Weibo users."""
+
+    client = _load_weibo_client_or_exit()
+    users = asyncio.run(client.search_users(query))
+    click.echo(
+        json.dumps([user.model_dump() for user in users], ensure_ascii=False, indent=2, default=str)
     )
