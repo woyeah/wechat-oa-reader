@@ -196,3 +196,52 @@ async def test_send_image(monkeypatch) -> None:
         "agentid": "1000001",
         "image": {"media_id": "mid-123"},
     }
+
+
+@pytest.mark.asyncio
+async def test_custom_base_url(monkeypatch) -> None:
+    """base_url should replace the default qyapi.weixin.qq.com prefix."""
+    _reset_httpx_mock()
+    _MockAsyncClient.get_responses = [
+        {"errcode": 0, "access_token": "tok", "expires_in": 7200}
+    ]
+    _MockAsyncClient.post_responses = [{"errcode": 0, "errmsg": "ok"}]
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _MockAsyncClient)
+
+    client = WeComClient(
+        corp_id="corp-1", agent_secret="secret-1", agent_id="1000001",
+        base_url="https://proxy.example.com",
+    )
+    await client.send_text("hello")
+
+    # GET for token should use custom base URL
+    assert _MockAsyncClient.get_calls[0]["url"].startswith("https://proxy.example.com/")
+    # POST for send should use custom base URL
+    assert _MockAsyncClient.post_calls[0]["url"].startswith("https://proxy.example.com/")
+
+
+@pytest.mark.asyncio
+async def test_extra_headers_passed(monkeypatch) -> None:
+    """extra_headers should be forwarded to httpx.AsyncClient."""
+    init_kwargs_captured = []
+
+    class _CapturingMockClient(_MockAsyncClient):
+        get_responses = [{"errcode": 0, "access_token": "tok", "expires_in": 7200}]
+        get_calls = []
+        post_calls = []
+        post_responses = []
+
+        def __init__(self, *args, **kwargs):
+            init_kwargs_captured.append(kwargs)
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _CapturingMockClient)
+
+    client = WeComClient(
+        corp_id="corp-1", agent_secret="secret-1", agent_id="1000001",
+        extra_headers={"X-Proxy-Key": "secret"},
+    )
+    await client.get_access_token()
+
+    assert len(init_kwargs_captured) >= 1
+    assert init_kwargs_captured[0].get("headers") == {"X-Proxy-Key": "secret"}

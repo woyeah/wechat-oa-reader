@@ -7,10 +7,20 @@ import httpx
 
 
 class WeComClient:
-    def __init__(self, corp_id: str, agent_secret: str, agent_id: str | int):
+    def __init__(
+        self,
+        corp_id: str,
+        agent_secret: str,
+        agent_id: str | int,
+        *,
+        base_url: str = "https://qyapi.weixin.qq.com",
+        extra_headers: dict[str, str] | None = None,
+    ):
         self._corp_id = corp_id
         self._agent_secret = agent_secret
         self._agent_id = agent_id
+        self._base_url = base_url.rstrip("/")
+        self._extra_headers = extra_headers or {}
         self._cached_token: str | None = None
         self._token_expires_at: float = 0.0
 
@@ -18,9 +28,9 @@ class WeComClient:
         if self._cached_token is not None and time.time() < self._token_expires_at:
             return self._cached_token
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
             response = await client.get(
-                "https://qyapi.weixin.qq.com/cgi-bin/gettoken",
+                f"{self._base_url}/cgi-bin/gettoken",
                 params={"corpid": self._corp_id, "corpsecret": self._agent_secret},
             )
             data = response.json()
@@ -46,9 +56,9 @@ class WeComClient:
             "text": {"content": content},
         }
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
             response = await client.post(
-                f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={token}",
+                f"{self._base_url}/cgi-bin/message/send?access_token={token}",
                 json=payload,
             )
             data = response.json()
@@ -61,11 +71,11 @@ class WeComClient:
         """Upload media to WeCom and return media_id."""
         token = await self.get_access_token()
         url = (
-            "https://qyapi.weixin.qq.com/cgi-bin/media/upload"
+            f"{self._base_url}/cgi-bin/media/upload"
             f"?access_token={token}&type={media_type}"
         )
         files = {"media": (filename, data)}
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
             response = await client.post(url, files=files)
             result = response.json()
         if result.get("errcode") != 0:
@@ -84,9 +94,9 @@ class WeComClient:
             "agentid": self._agent_id,
             "image": {"media_id": media_id},
         }
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
             response = await client.post(
-                f"https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={token}",
+                f"{self._base_url}/cgi-bin/message/send?access_token={token}",
                 json=payload,
             )
             result = response.json()
