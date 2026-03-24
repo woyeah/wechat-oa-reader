@@ -104,3 +104,13 @@ class WeiboCommentList(BaseModel):
     items: list[WeiboComment] = Field(default_factory=list)
     total: int | None = None
     max_id: str | None = None
+
+
+class WeiboArticle(BaseModel):
+    article_id: str
+    title: str
+    body: str  # HTML content
+    plain_text: str  # stripped HTML
+    cover_img: str | None = None
+    created_at: str | None = None
+    uid: str | None = None

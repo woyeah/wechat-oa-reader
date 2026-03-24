@@ -7,7 +7,14 @@ import click
 from click.testing import CliRunner
 
 from wechat_oa_reader.cli import cli
-from wechat_oa_reader.models import WeiboComment, WeiboCommentList, WeiboPost, WeiboPostList, WeiboUser
+from wechat_oa_reader.models import (
+    WeiboArticle,
+    WeiboComment,
+    WeiboCommentList,
+    WeiboPost,
+    WeiboPostList,
+    WeiboUser,
+)
 from wechat_oa_reader.weibo import WeiboClient
 
 
@@ -151,3 +158,43 @@ def test_weibo_search(monkeypatch) -> None:
     assert result.exit_code == 0
     assert '"uid": "123"' in result.output
     assert '"uid": "456"' in result.output
+
+
+def test_weibo_article(monkeypatch) -> None:
+    article = WeiboArticle(
+        article_id="123",
+        title="Test",
+        body="<p>content</p>",
+        plain_text="content",
+        uid="999",
+    )
+
+    async def mock_fetch_article(self, article_id):
+        return article
+
+    monkeypatch.setattr("wechat_oa_reader.cli._load_weibo_client_or_exit", lambda: WeiboClient(cookie="c"))
+    monkeypatch.setattr(WeiboClient, "fetch_article", mock_fetch_article)
+    runner = CliRunner()
+    result = runner.invoke(cli, ["weibo", "article", "123"])
+    assert result.exit_code == 0
+    assert '"title": "Test"' in result.output
+
+
+def test_weibo_article_text(monkeypatch) -> None:
+    article = WeiboArticle(
+        article_id="123",
+        title="Test",
+        body="<p>content</p>",
+        plain_text="content",
+        uid="999",
+    )
+
+    async def mock_fetch_article(self, article_id):
+        return article
+
+    monkeypatch.setattr("wechat_oa_reader.cli._load_weibo_client_or_exit", lambda: WeiboClient(cookie="c"))
+    monkeypatch.setattr(WeiboClient, "fetch_article", mock_fetch_article)
+    runner = CliRunner()
+    result = runner.invoke(cli, ["weibo", "article", "123", "--text"])
+    assert result.exit_code == 0
+    assert result.output.strip() == "content"

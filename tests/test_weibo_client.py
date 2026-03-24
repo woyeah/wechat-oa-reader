@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from wechat_oa_reader.fetcher import Fetcher
-from wechat_oa_reader.models import WeiboCommentList, WeiboPost, WeiboPostList, WeiboUser
+from wechat_oa_reader.models import WeiboArticle, WeiboCommentList, WeiboPost, WeiboPostList, WeiboUser
 from wechat_oa_reader.weibo import WeiboClient
 
 
@@ -108,6 +108,20 @@ def _comments_payload() -> dict:
             "max_id": "max_cursor_123",
             "total_number": 50,
         },
+    }
+
+
+def _article_payload() -> dict:
+    return {
+        "data": {
+            "object_id": "2309405280064458850670",
+            "vuid": 1885745060,
+            "uid": 1885745060,
+            "cover_img": "https://example.com/cover.jpg",
+            "title": "L.M.S量化交易组合实盘跟踪",
+            "create_at": "2024-03-23",
+            "target_url": "https://weibo.com/ttarticle/p/show?id=2309405280064458850670",
+        }
     }
 
 
@@ -340,6 +354,26 @@ async def test_weibo_client_search_users() -> None:
     assert user.followers_count == 15800
     assert user.following_count == 3205000
     assert user.verified is False
+
+
+@pytest.mark.asyncio
+async def test_weibo_client_fetch_article() -> None:
+    client = WeiboClient(cookie="SUB=abc123")
+
+    with patch.object(client, "_request_url", new=AsyncMock(return_value=_article_payload())):
+        article = await client.fetch_article("2309405280064458850670")
+
+    assert isinstance(article, WeiboArticle)
+    assert article.article_id == "2309405280064458850670"
+    assert article.title == "L.M.S量化交易组合实盘跟踪"
+    assert article.uid == "1885745060"
+    assert article.cover_img == "https://example.com/cover.jpg"
+
+
+def test_extract_article_id() -> None:
+    url = "https://weibo.com/ttarticle/p/show?id=2309405280064458850670&luicode=20000174"
+    assert WeiboClient.extract_article_id(url) == "2309405280064458850670"
+    assert WeiboClient.extract_article_id("https://example.com") is None
 
 
 def test_parse_count() -> None:

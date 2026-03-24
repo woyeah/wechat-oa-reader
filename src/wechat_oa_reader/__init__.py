@@ -11,6 +11,7 @@ from .models import (
     Credentials,
     ProxyConfig,
     RateLimitConfig,
+    WeiboArticle,
     WeiboComment,
     WeiboCommentList,
     WeiboPost,
@@ -45,6 +46,7 @@ __all__ = [
     "WeiboUser",
     "WeiboPost",
     "WeiboPostList",
+    "WeiboArticle",
     "WeiboComment",
     "WeiboCommentList",
 ]

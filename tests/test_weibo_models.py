@@ -7,6 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from wechat_oa_reader.models import (
+    WeiboArticle,
     WeiboComment,
     WeiboCommentList,
     WeiboPost,
@@ -281,3 +282,26 @@ def test_weibo_post_validate_from_dict() -> None:
     assert post.repost is not None
     assert post.repost.bid == "b99"
     assert post.repost.created_at == datetime(2024, 1, 1, 7, 0, 0)
+
+
+def test_weibo_article_minimal() -> None:
+    article = WeiboArticle(article_id="123", title="Test", body="<p>hi</p>", plain_text="hi")
+    assert article.article_id == "123"
+    assert article.title == "Test"
+    assert article.body == "<p>hi</p>"
+    assert article.plain_text == "hi"
+    assert article.cover_img is None
+
+
+def test_weibo_article_full() -> None:
+    article = WeiboArticle(
+        article_id="123",
+        title="Test",
+        body="<p>hi</p>",
+        plain_text="hi",
+        cover_img="https://example.com/cover.jpg",
+        created_at="2024-01-01",
+        uid="999",
+    )
+    assert article.cover_img == "https://example.com/cover.jpg"
+    assert article.uid == "999"

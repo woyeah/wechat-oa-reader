@@ -201,6 +201,19 @@ def weibo_fetch(bid: str, as_text: bool) -> None:
     click.echo(json.dumps(post.model_dump(), ensure_ascii=False, indent=2, default=str))
 
 
+@weibo.command("article")
+@click.argument("article_id")
+@click.option("--text", "as_text", is_flag=True, help="Output plain text only")
+def weibo_article(article_id: str, as_text: bool) -> None:
+    """Fetch a Weibo headline article."""
+    client = _load_weibo_client_or_exit()
+    article = asyncio.run(client.fetch_article(article_id))
+    if as_text:
+        click.echo(article.plain_text)
+    else:
+        click.echo(json.dumps(article.model_dump(), ensure_ascii=False, indent=2, default=str))
+
+
 @weibo.command("comments")
 @click.argument("post_id")
 @click.option("-n", "count", default=20, type=int)

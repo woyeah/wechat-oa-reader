@@ -12,6 +12,7 @@ from .fetcher import Fetcher
 from .limiter import RateLimiter
 from .models import (
     RateLimitConfig,
+    WeiboArticle,
     WeiboComment,
     WeiboCommentList,
     WeiboPost,
@@ -61,6 +62,40 @@ class WeiboClient:
         }
 
         url = f"{self._BASE_URL}{path}"
+        request_kwargs: dict[str, Any] = {
+            "params": params,
+            "headers": headers,
+        }
+
+        proxy = self._proxy_pool.next() if self._proxy_pool and self._proxy_pool.enabled else None
+        if proxy:
+            request_kwargs["proxy"] = proxy
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, **request_kwargs)
+            response.raise_for_status()
+            data: dict[str, Any] = response.json()
+
+        if proxy and self._proxy_pool:
+            self._proxy_pool.mark_ok(proxy)
+        return data
+
+    async def _request_url(self, url: str, *, params: dict | None = None) -> dict:
+        """Make GET request to an arbitrary URL with cookie auth."""
+        if self._rate_limiter:
+            await self._rate_limiter.acquire()
+
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+                "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+                "Version/17.0 Mobile/15E148 Safari/604.1"
+            ),
+            "Referer": "https://m.weibo.cn/",
+            "X-Requested-With": "XMLHttpRequest",
+            "Cookie": self._cookie,
+        }
+
         request_kwargs: dict[str, Any] = {
             "params": params,
             "headers": headers,
@@ -145,6 +180,33 @@ class WeiboClient:
                 post.html = long_text_content
 
         return post
+
+    async def fetch_article(self, article_id: str) -> WeiboArticle:
+        """Fetch a Weibo headline article by article_id.
+
+        The article_id typically looks like '2309405280064458850670' and comes from
+        post page_info URLs like weibo.com/ttarticle/p/show?id=XXXXX
+        """
+        payload = (
+            await self._request_url(
+                "https://card.weibo.com/article/m/aj/detail",
+                params={"id": article_id},
+            )
+        ).get("data", {})
+
+        body = str(payload.get("content") or payload.get("body") or "")
+        plain_text = re.sub(r"<[^>]+>", "", body)
+        raw_uid = payload.get("uid") or payload.get("vuid")
+        raw_article_id = payload.get("object_id") or article_id
+        return WeiboArticle(
+            article_id=str(raw_article_id),
+            title=str(payload.get("title") or ""),
+            body=body,
+            plain_text=plain_text,
+            cover_img=payload["cover_img"].get("image", {}).get("url") if isinstance(payload.get("cover_img"), dict) else (payload.get("cover_img") or None),
+            created_at=payload.get("create_at") or None,
+            uid=str(raw_uid) if raw_uid is not None else None,
+        )
 
     async def get_comments(
         self,
@@ -337,3 +399,14 @@ class WeiboClient:
                 if container_id:
                     return str(container_id)
         return None
+
+    @staticmethod
+    def extract_article_id(url: str) -> str | None:
+        """Extract article_id from a weibo article URL like
+        https://weibo.com/ttarticle/p/show?id=2309405280064458850670"""
+        import urllib.parse
+
+        parsed = urllib.parse.urlparse(url)
+        params = urllib.parse.parse_qs(parsed.query)
+        ids = params.get("id", [])
+        return ids[0] if ids else None
