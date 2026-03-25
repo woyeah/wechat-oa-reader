@@ -77,6 +77,7 @@ class WeiboPost(BaseModel):
     html: str | None = None
     images: list[str] = Field(default_factory=list)
     video_url: str | None = None
+    article_url: str | None = None
     repost: WeiboPost | None = None
     is_long_text: bool = False
     created_at: datetime

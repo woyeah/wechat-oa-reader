@@ -348,7 +348,8 @@ class WeiboClient:
             if isinstance(pic, dict) and pic.get("large", {}).get("url")
         ]
 
-        page_urls = (mblog.get("page_info") or {}).get("urls") or {}
+        page_info = mblog.get("page_info") or {}
+        page_urls = page_info.get("urls") or {}
         video_url = (
             page_urls.get("mp4_720p_mp4")
             or page_urls.get("mp4_hd_url")
@@ -356,6 +357,7 @@ class WeiboClient:
             or page_urls.get("stream_url")
             or page_urls.get("url")
         )
+        article_url = page_info.get("page_url") if page_info.get("type") == "article" else None
 
         repost_data = mblog.get("retweeted_status")
         repost = cls._parse_post(repost_data) if isinstance(repost_data, dict) and repost_data else None
@@ -370,6 +372,7 @@ class WeiboClient:
             html=text,
             images=images,
             video_url=video_url,
+            article_url=article_url,
             repost=repost,
             is_long_text=bool(mblog.get("isLongText")),
             created_at=cls._parse_datetime(mblog.get("created_at", "")),
