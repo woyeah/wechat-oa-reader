@@ -103,6 +103,7 @@ def test_weibo_post_full() -> None:
         "html": "<p>full text</p>",
         "images": ["https://example.com/1.jpg", "https://example.com/2.jpg"],
         "video_url": "https://example.com/video.mp4",
+        "article_url": None,
         "repost": {
             "bid": "b0",
             "mid": "m0",
@@ -111,6 +112,7 @@ def test_weibo_post_full() -> None:
             "html": None,
             "images": [],
             "video_url": None,
+            "article_url": None,
             "repost": None,
             "is_long_text": False,
             "created_at": datetime(2023, 12, 31, 22, 0, 0),
