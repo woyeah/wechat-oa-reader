@@ -14,7 +14,7 @@ services:
     ports:
       - "${WECOM_MCP_HOST_PORT}:8000"
     volumes:
-      - wecom-1-data:/data
+      - ./data/wecom-1:/data
 
   # Instance 2 (uncomment when needed)
   # wecom-mcp-2:
@@ -23,8 +23,4 @@ services:
   #   ports:
   #     - "${WECOM_MCP_HOST_PORT}:8000"
   #   volumes:
-  #     - wecom-2-data:/data
-
-volumes:
-  wecom-1-data:
-  # wecom-2-data:
+  #     - ./data/wecom-2:/data
