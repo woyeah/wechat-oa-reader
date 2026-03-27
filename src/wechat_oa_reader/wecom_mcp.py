@@ -229,7 +229,19 @@ def main() -> None:
     host = os.environ.get("WECOM_MCP_HOST", "0.0.0.0")
     port = int(os.environ.get("WECOM_MCP_PORT", "8000"))
 
-    client = WeComClient(corp_id, agent_secret, agent_id)
+    proxy_url = os.environ.get("WECOM_PROXY_URL", "")
+    proxy_key = os.environ.get("WECOM_PROXY_KEY", "")
+    extra: dict[str, str] = {}
+    if proxy_key:
+        extra["X-API-Key"] = proxy_key
+
+    client = WeComClient(
+        corp_id,
+        agent_secret,
+        agent_id,
+        **({"base_url": proxy_url} if proxy_url else {}),
+        **({"extra_headers": extra} if extra else {}),
+    )
     store = WeComStore(db_path)
     server = create_mcp_server(client, store, host=host, port=port)
     server.run(transport="streamable-http")
