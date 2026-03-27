@@ -18,8 +18,8 @@
 ## 技术栈
 
 - Python >=3.10, httpx, curl_cffi（Chrome TLS 指纹）, pydantic v2, click, python-dotenv
-- 可选：sqlite3（文章缓存 ArticleStore）
-- **不依赖** FastAPI/uvicorn（纯库 + CLI）
+- 可选：sqlite3（文章缓存 ArticleStore）、mcp[cli]（WeCom MCP 服务）
+- MCP 服务基于 FastMCP（starlette + uvicorn），Docker 部署
 
 ## 项目结构
 
@@ -28,7 +28,10 @@ src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
 ├── wecom.py                             # 企业微信 WeComClient（文本/图片推送）
+├── wecom_mcp.py                         # FastMCP 服务（5 tools + callback）
+├── wecom_store.py, wecom_crypto.py, wecom_callback.py
 ├── store.py, cli.py, py.typed
+Dockerfile, docker-compose.prod.yml      # Docker 部署
 .claude-plugin/marketplace.json          # Marketplace manifest
 plugins/wechat-oa-reader/                # Plugin（嵌套结构）
 ├── .claude-plugin/plugin.json           # Plugin manifest

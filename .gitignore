@@ -5,6 +5,7 @@ build/
 .eggs/
 *.pyc
 .env
+.env.*
 *.db
 .venv/
 .test_tmp/
@@ -19,3 +20,4 @@ unpacked_ey/
 uv.lock
 prompt.txt
 internal/
+.worktrees/

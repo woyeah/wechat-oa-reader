@@ -1,0 +1,30 @@
+x-wecom-mcp: &wecom-mcp
+  image: ${REGISTRY:-192.168.50.135:5500}/wechat-oa-reader:${IMAGE_TAG:-latest}
+  command: ["wecom-mcp"]
+  restart: unless-stopped
+
+services:
+  # Each instance MUST have its own volume — SQLite does not support
+  # concurrent writes. Never mount the same volume to multiple instances.
+
+  # Instance 1 — uses .env.wecom-1
+  wecom-mcp-1:
+    <<: *wecom-mcp
+    env_file: .env.wecom-1
+    ports:
+      - "${WECOM_MCP_1_PORT:-8000}:8000"
+    volumes:
+      - wecom-1-data:/data
+
+  # Instance 2 — uses .env.wecom-2 (uncomment when needed)
+  # wecom-mcp-2:
+  #   <<: *wecom-mcp
+  #   env_file: .env.wecom-2
+  #   ports:
+  #     - "${WECOM_MCP_2_PORT:-8001}:8000"
+  #   volumes:
+  #     - wecom-2-data:/data
+
+volumes:
+  wecom-1-data:
+  # wecom-2-data:

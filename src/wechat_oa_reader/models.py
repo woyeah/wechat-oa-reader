@@ -1,8 +1,9 @@
-﻿# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
 from datetime import datetime
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class Credentials(BaseModel):
@@ -115,3 +116,20 @@ class WeiboArticle(BaseModel):
     cover_img: str | None = None
     created_at: str | None = None
     uid: str | None = None
+
+
+class WeComUser(BaseModel):
+    userid: str
+    name: str
+    department: str | None = None
+    avatar: str | None = None
+
+
+class WeComMessage(BaseModel):
+    msg_id: str
+    msg_type: str
+    from_user: str
+    to_user: str
+    content: str
+    create_time: int
+    direction: Literal["sent", "received"]

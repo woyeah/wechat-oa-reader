@@ -26,6 +26,8 @@ dependencies = [
     "pydantic>=2.0",
     "python-dotenv>=1.0",
     "click>=8.0",
+    "cryptography>=41.0",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -33,10 +35,15 @@ dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
     "Pillow>=10.0",
+    "mcp[cli]>=1.7.1",
+]
+mcp = [
+    "mcp[cli]>=1.7.1",
 ]
 
 [project.scripts]
 wechat-oa = "wechat_oa_reader.cli:cli"
+wecom-mcp = "wechat_oa_reader.wecom_mcp:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wechat_oa_reader"]
