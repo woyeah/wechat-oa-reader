@@ -18,10 +18,10 @@ services:
       - ./data/wecom-1:/data
 
   # Instance 2 (uncomment when needed)
-  # wecom-mcp-2:
-  #   <<: *wecom-mcp
-  #   env_file: .env.wecom-2
-  #   ports:
-  #     - "${WECOM_2_PORT:-8003}:8000"
-  #   volumes:
-  #     - ./data/wecom-2:/data
+  wecom-mcp-2:
+    <<: *wecom-mcp
+    env_file: .env.wecom-2
+    ports:
+      - "${WECOM_2_PORT:-8003}:8000"
+    volumes:
+      - ./data/wecom-2:/data
