@@ -125,6 +125,17 @@ async def get_replies_handler(client, store, *, since_minutes: int = 60, limit: 
     return f"Replies ({len(replies)}):\n" + "\n".join(lines)
 
 
+async def download_media_handler(client, store, *, media_id: str) -> str:
+    """Download media by media_id, return base64-encoded data."""
+    _ = store
+    try:
+        data = await client.download_media(media_id)
+        encoded = base64.b64encode(data).decode()
+        return f"base64:{encoded}"
+    except Exception as e:
+        return f"Error: {e}"
+
+
 def _build_health_handler() -> Callable[[Request], Awaitable[Response]]:
     async def health(request: Request) -> JSONResponse:
         _ = request
@@ -171,7 +182,26 @@ def _build_callback_handler(store) -> Callable[[Request], Awaitable[Response]]:
                 return PlainTextResponse("invalid corp id", status_code=403)
 
             message_data = parse_callback_xml(decrypted_xml)
-            content = message_data.get("Content", "") or message_data.get("Event", "")
+            msg_type = message_data.get("MsgType", "")
+            if msg_type == "image":
+                pic_url = message_data.get("PicUrl", "")
+                media_id = message_data.get("MediaId", "")
+                content = f"[image] PicUrl={pic_url} MediaId={media_id}"
+            elif msg_type == "voice":
+                media_id = message_data.get("MediaId", "")
+                content = f"[voice] MediaId={media_id}"
+            elif msg_type == "video":
+                media_id = message_data.get("MediaId", "")
+                content = f"[video] MediaId={media_id}"
+            elif msg_type == "location":
+                label = message_data.get("Label", "")
+                lat = message_data.get("Location_X", "")
+                lng = message_data.get("Location_Y", "")
+                content = f"[location] {label} ({lat},{lng})"
+            elif msg_type == "event":
+                content = message_data.get("Event", "")
+            else:
+                content = message_data.get("Content", "")
             store.save_message(
                 WeComMessage(
                     msg_id=message_data.get("MsgId", ""),
@@ -226,6 +256,11 @@ def create_mcp_server(client, store, *, host: str = "0.0.0.0", port: int = 8000)
     async def send_image(image_base64: str, filename: str = "image.png", to: str = "@all") -> str:
         """Send image (base64-encoded) to user by name or @all"""
         return await send_image_handler(client, store, image_base64=image_base64, filename=filename, to=to)
+
+    @mcp.tool()
+    async def download_media(media_id: str) -> str:
+        """Download media file by media_id, returns base64-encoded data"""
+        return await download_media_handler(client, store, media_id=media_id)
 
     @mcp.tool()
     async def list_users(department_id: int = 1) -> str:
@@ -288,5 +323,6 @@ __all__ = [
     "list_users_handler",
     "get_messages_handler",
     "get_replies_handler",
+    "download_media_handler",
     "main",
 ]

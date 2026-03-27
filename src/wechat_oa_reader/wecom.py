@@ -103,3 +103,14 @@ class WeComClient:
         if result.get("errcode") != 0:
             raise RuntimeError(str(result.get("errmsg", "Unknown error")))
         return result
+
+    async def download_media(self, media_id: str) -> bytes:
+        """Download media file by media_id and return raw bytes."""
+        token = await self.get_access_token()
+        url = f"{self._base_url}/cgi-bin/media/get?access_token={token}&media_id={media_id}"
+        async with httpx.AsyncClient(timeout=30.0, headers=self._extra_headers) as client:
+            response = await client.get(url)
+            if response.headers.get("content-type", "").startswith("application/json"):
+                data = response.json()
+                raise RuntimeError(str(data.get("errmsg", "Unknown error")))
+            return response.content

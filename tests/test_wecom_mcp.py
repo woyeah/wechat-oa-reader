@@ -15,6 +15,7 @@ from wechat_oa_reader.models import WeComMessage, WeComUser
 from wechat_oa_reader.wecom_mcp import (
     check_status_handler,
     create_mcp_server,
+    download_media_handler,
     get_messages_handler,
     get_replies_handler,
     list_users_handler,
@@ -42,6 +43,7 @@ def mock_client() -> MagicMock:
     client.send_text = AsyncMock()
     client.upload_media = AsyncMock()
     client.send_image = AsyncMock()
+    client.download_media = AsyncMock()
     return client
 
 
@@ -112,7 +114,7 @@ class TestMcpServerCreation:
     def test_server_has_expected_tools(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
         server = create_mcp_server(mock_client, mock_store)
         tool_names = _extract_tool_names(server)
-        expected = {"check_status", "send_message", "send_image", "list_users", "get_messages", "get_replies"}
+        expected = {"check_status", "send_message", "send_image", "download_media", "list_users", "get_messages", "get_replies"}
         assert expected.issubset(tool_names)
 
 
@@ -273,3 +275,23 @@ class TestSendImage:
 
         mock_client.upload_media.assert_not_called()
         assert "not found" in result.lower()
+
+
+class TestDownloadMedia:
+    async def test_download_media_success(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_client.download_media.return_value = b"\x89PNG fake"
+
+        result = await download_media_handler(mock_client, mock_store, media_id="mid-123")
+
+        mock_client.download_media.assert_awaited_once_with("mid-123")
+        assert result.startswith("base64:")
+        import base64
+        decoded = base64.b64decode(result[len("base64:"):])
+        assert decoded == b"\x89PNG fake"
+
+    async def test_download_media_error(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_client.download_media.side_effect = RuntimeError("media expired")
+
+        result = await download_media_handler(mock_client, mock_store, media_id="bad-id")
+
+        assert "error" in result.lower()
