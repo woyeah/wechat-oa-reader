@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import os
 import struct
 import time
@@ -39,7 +40,7 @@ def _pkcs7_unpad(data: bytes, block_size: int = 32) -> bytes:
 def verify_signature(token: str, timestamp: str, nonce: str, encrypted_msg: str, signature: str) -> bool:
     items = sorted([token, timestamp, nonce, encrypted_msg])
     expected = hashlib.sha1("".join(items).encode("utf-8")).hexdigest()
-    return expected == signature
+    return hmac.compare_digest(expected, signature)
 
 
 def decrypt_message(encoding_aes_key: str, encrypted_msg: str) -> tuple[str, str]:

@@ -15,10 +15,8 @@ echo "==> Pushing to registry"
 docker push "${IMAGE}:${TAG}"
 
 echo "==> Deploying to NAS (${NAS_HOST})"
-ssh "${NAS_USER}@${NAS_HOST}" bash -s <<EOF
-  cd ${NAS_DIR}
-  docker pull ${IMAGE}:${TAG}
-  docker compose -f docker-compose.prod.yml up -d
+ssh "${NAS_USER}@${NAS_HOST}" bash -s -- "${NAS_DIR}" "${IMAGE}" "${TAG}" <<'EOF'
+  cd "$1" && docker pull "$2:$3" && docker compose -f docker-compose.prod.yml up -d
 EOF
 
 echo "==> Done"

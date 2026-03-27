@@ -21,10 +21,10 @@ async def check_status_handler(client, store) -> str:
     """Check WeCom connection. Try get_access_token; return connected/error status."""
     _ = store
     try:
-        token = await client.get_access_token()
-        return f"Connected. Token: {token[:8]}..."
-    except Exception as e:  # pragma: no cover - exercised in tests
-        return f"Error: {e}"
+        await client.get_access_token()
+        return "Connected"
+    except Exception:
+        return "Error: connection failed"
 
 
 async def send_message_handler(client, store, *, content: str, to: str) -> str:
@@ -149,6 +149,9 @@ def _build_callback_handler(store) -> Callable[[Request], Awaitable[Response]]:
         token = os.environ.get("WECOM_CALLBACK_TOKEN", "")
         encoding_aes_key = os.environ.get("WECOM_CALLBACK_ENCODING_AES_KEY", "")
         corp_id = os.environ.get("WECOM_CORP_ID", "")
+
+        if not token or not encoding_aes_key:
+            return PlainTextResponse("callback not configured", status_code=503)
 
         signature = request.query_params.get("msg_signature", "")
         timestamp = request.query_params.get("timestamp", "")
