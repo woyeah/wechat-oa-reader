@@ -18,6 +18,7 @@ from wechat_oa_reader.wecom_mcp import (
     get_messages_handler,
     get_replies_handler,
     list_users_handler,
+    send_image_handler,
     send_message_handler,
 )
 
@@ -39,6 +40,8 @@ def mock_client() -> MagicMock:
     client = MagicMock()
     client.get_access_token = AsyncMock()
     client.send_text = AsyncMock()
+    client.upload_media = AsyncMock()
+    client.send_image = AsyncMock()
     return client
 
 
@@ -109,7 +112,7 @@ class TestMcpServerCreation:
     def test_server_has_expected_tools(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
         server = create_mcp_server(mock_client, mock_store)
         tool_names = _extract_tool_names(server)
-        expected = {"check_status", "send_message", "list_users", "get_messages", "get_replies"}
+        expected = {"check_status", "send_message", "send_image", "list_users", "get_messages", "get_replies"}
         assert expected.issubset(tool_names)
 
 
@@ -238,3 +241,35 @@ class TestGetReplies:
         result = await get_replies_handler(mock_client, mock_store, since_minutes=60, limit=50)
 
         assert "no" in result.lower() and "repl" in result.lower()
+
+
+class TestSendImage:
+    async def test_send_image_to_all(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_client.upload_media.return_value = "media-123"
+        mock_client.send_image.return_value = {"errcode": 0}
+        image_b64 = "aVZCT1J3MEtHZ29BQQ=="  # fake base64
+
+        result = await send_image_handler(mock_client, mock_store, image_base64=image_b64, filename="test.png", to="@all")
+
+        mock_client.upload_media.assert_awaited_once()
+        mock_client.send_image.assert_awaited_once_with("media-123", "@all")
+        mock_store.save_message.assert_called_once()
+        assert "sent" in result.lower() or "image" in result.lower()
+
+    async def test_send_image_to_named_user(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_store.find_user_by_name.return_value = WeComUser(userid="zhangsan", name="张三")
+        mock_client.upload_media.return_value = "media-456"
+        mock_client.send_image.return_value = {"errcode": 0}
+
+        result = await send_image_handler(mock_client, mock_store, image_base64="AAAA", filename="pic.png", to="张三")
+
+        mock_store.find_user_by_name.assert_called_once_with("张三")
+        mock_client.send_image.assert_awaited_once_with("media-456", "zhangsan")
+
+    async def test_send_image_user_not_found(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_store.find_user_by_name.return_value = None
+
+        result = await send_image_handler(mock_client, mock_store, image_base64="AAAA", filename="pic.png", to="Nobody")
+
+        mock_client.upload_media.assert_not_called()
+        assert "not found" in result.lower()

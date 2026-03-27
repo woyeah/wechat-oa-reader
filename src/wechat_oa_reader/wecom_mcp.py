@@ -1,6 +1,7 @@
 ﻿# SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
+import base64
 import os
 import time
 from collections.abc import Awaitable, Callable
@@ -49,6 +50,33 @@ async def send_message_handler(client, store, *, content: str, to: str) -> str:
         )
     )
     return f"Sent to {to} ({userid})"
+
+
+async def send_image_handler(client, store, *, image_base64: str, filename: str = "image.png", to: str = "@all") -> str:
+    """Send image. Accepts base64-encoded image data, uploads and sends."""
+    if to == "@all":
+        userid = "@all"
+    else:
+        user = store.find_user_by_name(to)
+        if user is None:
+            return f"User not found: {to}"
+        userid = user.userid
+
+    image_data = base64.b64decode(image_base64)
+    media_id = await client.upload_media(image_data, filename)
+    await client.send_image(media_id, userid)
+    store.save_message(
+        WeComMessage(
+            msg_id="",
+            msg_type="image",
+            from_user="bot",
+            to_user=userid,
+            content=f"[image:{filename}]",
+            create_time=int(time.time()),
+            direction="sent",
+        )
+    )
+    return f"Image sent to {to} ({userid})"
 
 
 async def list_users_handler(client, store, *, department_id: int = 1) -> str:
@@ -195,6 +223,11 @@ def create_mcp_server(client, store, *, host: str = "0.0.0.0", port: int = 8000)
         return await send_message_handler(client, store, content=content, to=to)
 
     @mcp.tool()
+    async def send_image(image_base64: str, filename: str = "image.png", to: str = "@all") -> str:
+        """Send image (base64-encoded) to user by name or @all"""
+        return await send_image_handler(client, store, image_base64=image_base64, filename=filename, to=to)
+
+    @mcp.tool()
     async def list_users(department_id: int = 1) -> str:
         """List cached users from address book"""
         return await list_users_handler(client, store, department_id=department_id)
@@ -251,6 +284,7 @@ __all__ = [
     "create_mcp_server",
     "check_status_handler",
     "send_message_handler",
+    "send_image_handler",
     "list_users_handler",
     "get_messages_handler",
     "get_replies_handler",
