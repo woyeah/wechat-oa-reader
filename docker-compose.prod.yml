@@ -8,11 +8,12 @@ services:
   # concurrent writes. Never mount the same volume to multiple instances.
 
   # Instance 1
+  # Host ports read from .env (not env_file — Docker limitation)
   wecom-mcp-1:
     <<: *wecom-mcp
     env_file: .env.wecom-1
     ports:
-      - "${WECOM_MCP_HOST_PORT}:8000"
+      - "${WECOM_1_PORT:-8002}:8000"
     volumes:
       - ./data/wecom-1:/data
 
@@ -21,6 +22,6 @@ services:
   #   <<: *wecom-mcp
   #   env_file: .env.wecom-2
   #   ports:
-  #     - "${WECOM_MCP_HOST_PORT}:8000"
+  #     - "${WECOM_2_PORT:-8003}:8000"
   #   volumes:
   #     - ./data/wecom-2:/data
