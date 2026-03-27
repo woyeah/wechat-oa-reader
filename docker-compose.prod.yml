@@ -1,8 +1,14 @@
+x-common: &common
+  image: ${REGISTRY:-192.168.50.135:5500}/wechat-oa-reader:${IMAGE_TAG:-latest}
+  restart: unless-stopped
+
 services:
+  # ---------- WeCom MCP ----------
   wecom-mcp:
-    image: ${REGISTRY:-192.168.50.135:5500}/wecom-mcp:${WECOM_MCP_TAG:-latest}
+    <<: *common
+    command: ["wecom-mcp"]
     ports:
-      - "${WECOM_MCP_PORT:-8000}:8000"
+      - "${WECOM_MCP_PORT:-8000}:${WECOM_MCP_PORT:-8000}"
     volumes:
       - wecom-data:/data
     environment:
@@ -12,18 +18,37 @@ services:
       - WECOM_CALLBACK_TOKEN=${WECOM_CALLBACK_TOKEN}
       - WECOM_CALLBACK_ENCODING_AES_KEY=${WECOM_CALLBACK_ENCODING_AES_KEY}
       - WECOM_MCP_HOST=0.0.0.0
-      - WECOM_MCP_PORT=8000
+      - WECOM_MCP_PORT=${WECOM_MCP_PORT:-8000}
       - WECOM_DB_PATH=/data/wecom.db
-    restart: unless-stopped
 
-  # -- Future MCP services --
+  # ---------- WeChat OA MCP (uncomment when ready) ----------
   # wechat-mcp:
-  #   image: ${REGISTRY:-192.168.50.135:5500}/wechat-mcp:latest
+  #   <<: *common
+  #   command: ["wechat-mcp"]
   #   ports:
-  #     - "${WECHAT_MCP_PORT:-8001}:8001"
+  #     - "${WECHAT_MCP_PORT:-8001}:${WECHAT_MCP_PORT:-8001}"
+  #   volumes:
+  #     - wechat-data:/data
   #   environment:
-  #     - WECHAT_MCP_PORT=8001
-  #   restart: unless-stopped
+  #     - WECHAT_TOKEN=${WECHAT_TOKEN}
+  #     - WECHAT_COOKIE=${WECHAT_COOKIE}
+  #     - WECHAT_MCP_HOST=0.0.0.0
+  #     - WECHAT_MCP_PORT=${WECHAT_MCP_PORT:-8001}
+
+  # ---------- ZSXQ MCP (uncomment when ready) ----------
+  # zsxq-mcp:
+  #   <<: *common
+  #   command: ["zsxq-mcp"]
+  #   ports:
+  #     - "${ZSXQ_MCP_PORT:-8002}:${ZSXQ_MCP_PORT:-8002}"
+  #   volumes:
+  #     - zsxq-data:/data
+  #   environment:
+  #     - ZSXQ_COOKIE=${ZSXQ_COOKIE}
+  #     - ZSXQ_MCP_HOST=0.0.0.0
+  #     - ZSXQ_MCP_PORT=${ZSXQ_MCP_PORT:-8002}
 
 volumes:
   wecom-data:
+  # wechat-data:
+  # zsxq-data:

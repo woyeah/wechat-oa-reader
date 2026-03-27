@@ -11,6 +11,6 @@ RUN mkdir -p /data
 
 ENV WECOM_DB_PATH=/data/wecom.db
 
-EXPOSE 8000
-
+# No fixed CMD — docker-compose specifies the entry point per service
+# Default: wecom-mcp (for standalone use)
 CMD ["wecom-mcp"]
