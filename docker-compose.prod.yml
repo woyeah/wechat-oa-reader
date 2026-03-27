@@ -4,6 +4,9 @@ x-wecom-mcp: &wecom-mcp
   restart: unless-stopped
 
 services:
+  # Each instance MUST have its own volume — SQLite does not support
+  # concurrent writes. Never mount the same volume to multiple instances.
+
   # Instance 1 — uses .env.wecom-1
   wecom-mcp-1:
     <<: *wecom-mcp

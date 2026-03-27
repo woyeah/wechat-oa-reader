@@ -177,7 +177,7 @@ docker build -t wecom-mcp .
 docker run -d -p 8000:8000 --env-file .env -v wecom-data:/data wecom-mcp
 ```
 
-环境变量见 `.env.example`，生产编排见 `docker-compose.prod.yml`，NAS 一键部署见 `deploy.sh`。
+支持多实例 — 每个实例使用独立的 `.env.wecom-<name>` 和 Docker volume（SQLite 不支持多进程共享）。模板见 `.env.example`，生产编排见 `docker-compose.prod.yml`，NAS 一键部署见 `deploy.sh`。
 
 ## 开发
 

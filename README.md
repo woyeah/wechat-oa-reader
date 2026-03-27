@@ -177,7 +177,7 @@ docker build -t wecom-mcp .
 docker run -d -p 8000:8000 --env-file .env -v wecom-data:/data wecom-mcp
 ```
 
-See `.env.example` for required environment variables, `docker-compose.prod.yml` for production setup, and `deploy.sh` for NAS deployment.
+Multiple instances supported — each gets its own `.env.wecom-<name>` and Docker volume (SQLite cannot be shared across instances). See `.env.example` for the per-instance template, `docker-compose.prod.yml` for production setup, and `deploy.sh` for NAS deployment.
 
 ## Development
 
