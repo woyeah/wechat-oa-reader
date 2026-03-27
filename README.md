@@ -166,9 +166,11 @@ wecom-mcp  # starts FastMCP server on port 8000
 |------|-------------|
 | `check_status` | Check WeCom API connection |
 | `send_message` | Send message by name or @all |
+| `send_image` | Send image (base64-encoded) |
+| `download_media` | Download media by media_id (returns base64) |
 | `list_users` | List cached address book |
 | `get_messages` | Query message history |
-| `get_replies` | Get received replies |
+| `get_replies` | Get received replies (text, image, voice, video) |
 
 **Docker deployment:**
 

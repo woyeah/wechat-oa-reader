@@ -28,7 +28,7 @@ src/wechat_oa_reader/                    # Python 包（pip install）
 ├── __init__.py, models.py, client.py, auth.py
 ├── fetcher.py, parser.py, proxy.py, limiter.py
 ├── wecom.py                             # 企业微信 WeComClient（文本/图片推送）
-├── wecom_mcp.py                         # FastMCP 服务（5 tools + callback）
+├── wecom_mcp.py                         # FastMCP 服务（7 tools + callback）
 ├── wecom_store.py, wecom_crypto.py, wecom_callback.py
 ├── store.py, cli.py, py.typed
 Dockerfile, docker-compose.prod.yml      # Docker 部署

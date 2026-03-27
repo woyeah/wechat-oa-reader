@@ -166,9 +166,11 @@ wecom-mcp  # 启动 FastMCP 服务，端口 8000
 |------|------|
 | `check_status` | 检查企业微信连接状态 |
 | `send_message` | 按姓名或 @all 发消息 |
+| `send_image` | 发送图片（base64 编码） |
+| `download_media` | 按 media_id 下载媒体（返回 base64） |
 | `list_users` | 列出缓存的通讯录 |
 | `get_messages` | 查询消息历史 |
-| `get_replies` | 查看收到的回复 |
+| `get_replies` | 查看收到的回复（文本、图片、语音、视频） |
 
 **Docker 部署：**
 
