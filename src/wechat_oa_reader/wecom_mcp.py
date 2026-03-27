@@ -107,8 +107,8 @@ def _build_health_handler() -> Callable[[Request], Awaitable[Response]]:
 
 def _build_callback_handler(store) -> Callable[[Request], Awaitable[Response]]:
     async def callback(request: Request) -> Response:
-        token = os.environ.get("WECOM_TOKEN", "")
-        encoding_aes_key = os.environ.get("WECOM_ENCODING_AES_KEY", "")
+        token = os.environ.get("WECOM_CALLBACK_TOKEN", "")
+        encoding_aes_key = os.environ.get("WECOM_CALLBACK_ENCODING_AES_KEY", "")
         corp_id = os.environ.get("WECOM_CORP_ID", "")
 
         signature = request.query_params.get("msg_signature", "")
@@ -226,8 +226,8 @@ def main() -> None:
     agent_secret = os.environ.get("WECOM_AGENT_SECRET", "")
     agent_id = os.environ.get("WECOM_AGENT_ID", "")
     db_path = os.environ.get("WECOM_DB_PATH", "wecom.db")
-    host = os.environ.get("MCP_HOST", "0.0.0.0")
-    port = int(os.environ.get("MCP_PORT", "8000"))
+    host = os.environ.get("WECOM_MCP_HOST", "0.0.0.0")
+    port = int(os.environ.get("WECOM_MCP_PORT", "8000"))
 
     client = WeComClient(corp_id, agent_secret, agent_id)
     store = WeComStore(db_path)

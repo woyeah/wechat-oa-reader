@@ -2,12 +2,28 @@ services:
   wecom-mcp:
     image: ${REGISTRY:-192.168.50.135:5500}/wecom-mcp:${WECOM_MCP_TAG:-latest}
     ports:
-      - "${MCP_PORT:-8000}:8000"
+      - "${WECOM_MCP_PORT:-8000}:8000"
     volumes:
       - wecom-data:/data
-    env_file:
-      - .env
+    environment:
+      - WECOM_CORP_ID=${WECOM_CORP_ID}
+      - WECOM_AGENT_SECRET=${WECOM_AGENT_SECRET}
+      - WECOM_AGENT_ID=${WECOM_AGENT_ID}
+      - WECOM_CALLBACK_TOKEN=${WECOM_CALLBACK_TOKEN}
+      - WECOM_CALLBACK_ENCODING_AES_KEY=${WECOM_CALLBACK_ENCODING_AES_KEY}
+      - WECOM_MCP_HOST=0.0.0.0
+      - WECOM_MCP_PORT=8000
+      - WECOM_DB_PATH=/data/wecom.db
     restart: unless-stopped
+
+  # -- Future MCP services --
+  # wechat-mcp:
+  #   image: ${REGISTRY:-192.168.50.135:5500}/wechat-mcp:latest
+  #   ports:
+  #     - "${WECHAT_MCP_PORT:-8001}:8001"
+  #   environment:
+  #     - WECHAT_MCP_PORT=8001
+  #   restart: unless-stopped
 
 volumes:
   wecom-data:
