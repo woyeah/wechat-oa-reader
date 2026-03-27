@@ -7,7 +7,7 @@ COPY src/ src/
 
 RUN pip install --no-cache-dir ".[mcp]"
 
-RUN mkdir -p /data && useradd -r -s /bin/false appuser && chown appuser:appuser /data
+RUN mkdir -p /data && useradd -r -u 1000 -s /bin/false appuser && chown appuser:appuser /data
 
 ENV WECOM_DB_PATH=/data/wecom.db
 
