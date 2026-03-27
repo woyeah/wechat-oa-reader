@@ -233,7 +233,7 @@ def main() -> None:
     proxy_key = os.environ.get("WECOM_PROXY_KEY", "")
     extra: dict[str, str] = {}
     if proxy_key:
-        extra["X-API-Key"] = proxy_key
+        extra["X-Proxy-Key"] = proxy_key
 
     client = WeComClient(
         corp_id,
