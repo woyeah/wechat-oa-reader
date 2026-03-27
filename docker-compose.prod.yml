@@ -7,23 +7,21 @@ services:
   # Each instance MUST have its own volume — SQLite does not support
   # concurrent writes. Never mount the same volume to multiple instances.
 
-  # Instance 1 — uses .env.wecom-1
-  # Port is read from .env.wecom-1's WECOM_MCP_PORT (default 8000)
+  # Instance 1 — host port 8002, container always 8000
   wecom-mcp-1:
     <<: *wecom-mcp
     env_file: .env.wecom-1
     ports:
-      - "${WECOM_MCP_PORT:-8000}:${WECOM_MCP_PORT:-8000}"
+      - "8002:8000"
     volumes:
       - wecom-1-data:/data
 
-  # Instance 2 — uses .env.wecom-2 (uncomment when needed)
-  # Create .env.wecom-2 with a different WECOM_MCP_PORT (e.g. 8003)
+  # Instance 2 — host port 8003 (uncomment when needed)
   # wecom-mcp-2:
   #   <<: *wecom-mcp
   #   env_file: .env.wecom-2
   #   ports:
-  #     - "${WECOM_MCP_PORT:-8001}:${WECOM_MCP_PORT:-8001}"
+  #     - "8003:8000"
   #   volumes:
   #     - wecom-2-data:/data
 
