@@ -1,0 +1,13 @@
+services:
+  wecom-mcp:
+    image: ${REGISTRY:-192.168.50.135:5500}/wecom-mcp:${WECOM_MCP_TAG:-latest}
+    ports:
+      - "${MCP_PORT:-8000}:8000"
+    volumes:
+      - wecom-data:/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  wecom-data:
