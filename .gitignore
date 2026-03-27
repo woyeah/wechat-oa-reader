@@ -5,6 +5,7 @@ build/
 .eggs/
 *.pyc
 .env
+.env.*
 *.db
 .venv/
 .test_tmp/

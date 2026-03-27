@@ -1,54 +1,27 @@
-x-common: &common
+x-wecom-mcp: &wecom-mcp
   image: ${REGISTRY:-192.168.50.135:5500}/wechat-oa-reader:${IMAGE_TAG:-latest}
+  command: ["wecom-mcp"]
   restart: unless-stopped
 
 services:
-  # ---------- WeCom MCP ----------
-  wecom-mcp:
-    <<: *common
-    command: ["wecom-mcp"]
+  # Instance 1 — uses .env.wecom-1
+  wecom-mcp-1:
+    <<: *wecom-mcp
+    env_file: .env.wecom-1
     ports:
-      - "${WECOM_MCP_PORT:-8000}:${WECOM_MCP_PORT:-8000}"
+      - "${WECOM_MCP_1_PORT:-8000}:8000"
     volumes:
-      - wecom-data:/data
-    environment:
-      - WECOM_CORP_ID=${WECOM_CORP_ID}
-      - WECOM_AGENT_SECRET=${WECOM_AGENT_SECRET}
-      - WECOM_AGENT_ID=${WECOM_AGENT_ID}
-      - WECOM_CALLBACK_TOKEN=${WECOM_CALLBACK_TOKEN}
-      - WECOM_CALLBACK_ENCODING_AES_KEY=${WECOM_CALLBACK_ENCODING_AES_KEY}
-      - WECOM_MCP_HOST=0.0.0.0
-      - WECOM_MCP_PORT=${WECOM_MCP_PORT:-8000}
-      - WECOM_DB_PATH=/data/wecom.db
+      - wecom-1-data:/data
 
-  # ---------- WeChat OA MCP (uncomment when ready) ----------
-  # wechat-mcp:
-  #   <<: *common
-  #   command: ["wechat-mcp"]
+  # Instance 2 — uses .env.wecom-2 (uncomment when needed)
+  # wecom-mcp-2:
+  #   <<: *wecom-mcp
+  #   env_file: .env.wecom-2
   #   ports:
-  #     - "${WECHAT_MCP_PORT:-8001}:${WECHAT_MCP_PORT:-8001}"
+  #     - "${WECOM_MCP_2_PORT:-8001}:8000"
   #   volumes:
-  #     - wechat-data:/data
-  #   environment:
-  #     - WECHAT_TOKEN=${WECHAT_TOKEN}
-  #     - WECHAT_COOKIE=${WECHAT_COOKIE}
-  #     - WECHAT_MCP_HOST=0.0.0.0
-  #     - WECHAT_MCP_PORT=${WECHAT_MCP_PORT:-8001}
-
-  # ---------- ZSXQ MCP (uncomment when ready) ----------
-  # zsxq-mcp:
-  #   <<: *common
-  #   command: ["zsxq-mcp"]
-  #   ports:
-  #     - "${ZSXQ_MCP_PORT:-8002}:${ZSXQ_MCP_PORT:-8002}"
-  #   volumes:
-  #     - zsxq-data:/data
-  #   environment:
-  #     - ZSXQ_COOKIE=${ZSXQ_COOKIE}
-  #     - ZSXQ_MCP_HOST=0.0.0.0
-  #     - ZSXQ_MCP_PORT=${ZSXQ_MCP_PORT:-8002}
+  #     - wecom-2-data:/data
 
 volumes:
-  wecom-data:
-  # wechat-data:
-  # zsxq-data:
+  wecom-1-data:
+  # wecom-2-data:

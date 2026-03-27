@@ -8,6 +8,7 @@ plugins/
 internal/
 *.db
 .env
+.env.*
 .pytest_cache/
 __pycache__/
 *.pyc
