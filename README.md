@@ -151,6 +151,34 @@ async def main():
 asyncio.run(main())
 ```
 
+## WeCom MCP Server (Docker)
+
+Deploy WeCom as an MCP service — Claude Code calls tools directly, and WeCom message callbacks are handled in the same process.
+
+```bash
+pip install wechat-oa-reader[mcp]
+wecom-mcp  # starts FastMCP server on port 8000
+```
+
+**MCP Tools:**
+
+| Tool | Description |
+|------|-------------|
+| `check_status` | Check WeCom API connection |
+| `send_message` | Send message by name or @all |
+| `list_users` | List cached address book |
+| `get_messages` | Query message history |
+| `get_replies` | Get received replies |
+
+**Docker deployment:**
+
+```bash
+docker build -t wecom-mcp .
+docker run -d -p 8000:8000 --env-file .env -v wecom-data:/data wecom-mcp
+```
+
+See `.env.example` for required environment variables, `docker-compose.prod.yml` for production setup, and `deploy.sh` for NAS deployment.
+
 ## Development
 
 ```bash

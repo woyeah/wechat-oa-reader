@@ -151,6 +151,34 @@ async def main():
 asyncio.run(main())
 ```
 
+## 企业微信 MCP 服务（Docker）
+
+将企业微信部署为 MCP 服务 — Claude Code 直接调用 tools，同时处理企业微信消息回调。
+
+```bash
+pip install wechat-oa-reader[mcp]
+wecom-mcp  # 启动 FastMCP 服务，端口 8000
+```
+
+**MCP Tools：**
+
+| Tool | 说明 |
+|------|------|
+| `check_status` | 检查企业微信连接状态 |
+| `send_message` | 按姓名或 @all 发消息 |
+| `list_users` | 列出缓存的通讯录 |
+| `get_messages` | 查询消息历史 |
+| `get_replies` | 查看收到的回复 |
+
+**Docker 部署：**
+
+```bash
+docker build -t wecom-mcp .
+docker run -d -p 8000:8000 --env-file .env -v wecom-data:/data wecom-mcp
+```
+
+环境变量见 `.env.example`，生产编排见 `docker-compose.prod.yml`，NAS 一键部署见 `deploy.sh`。
+
 ## 开发
 
 ```bash
