@@ -125,3 +125,37 @@ async def test_check_auth_returns_false_on_network_error(monkeypatch) -> None:
     monkeypatch.setattr("wechat_oa_reader.client.httpx.AsyncClient", _FakeAsyncClient)
     client = WeChatClient(token="t", cookie="c")
     assert await client.check_auth() is False
+
+
+@pytest.mark.asyncio
+async def test_check_auth_uses_nonempty_query(monkeypatch) -> None:
+    captured_kwargs: list[dict] = []
+
+    class _Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"base_resp": {"ret": 0}}
+
+    class _FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def get(self, *args, **kwargs):
+            captured_kwargs.append(kwargs)
+            return _Response()
+
+    monkeypatch.setattr("wechat_oa_reader.client.httpx.AsyncClient", _FakeAsyncClient)
+    client = WeChatClient(token="t", cookie="c")
+    assert await client.check_auth() is True
+    assert captured_kwargs
+    params = captured_kwargs[0]["params"]
+    assert isinstance(params["query"], str)
+    assert params["query"] != ""

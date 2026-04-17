@@ -46,7 +46,7 @@ class WeChatClient:
     async def check_auth(self) -> bool:
         """Probe WeChat MP to verify token+cookie are still valid.
 
-        Sends a minimal searchbiz request (count=1, empty query).
+        Sends a minimal searchbiz request (count=1, non-empty query).
         Returns True iff base_resp.ret == 0. Returns False on network
         errors, HTTP errors, or non-zero base_resp.ret (= token expired
         / invalidated). Never raises.
@@ -64,7 +64,8 @@ class WeChatClient:
                         "lang": "zh_CN",
                         "f": "json",
                         "ajax": 1,
-                        "query": "",
+                        # searchbiz rejects empty query with ret=200002 invalid args (not auth failure)
+                        "query": "test",
                         "begin": 0,
                         "count": 1,
                     },
