@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
+import httpx
 import pytest
 
 from wechat_oa_reader.client import WeChatClient
@@ -44,3 +45,83 @@ async def test_from_credentials() -> None:
     assert client.is_authenticated is True
     assert client.credentials is not None
     assert client.credentials.token == "token-x"
+
+
+@pytest.mark.asyncio
+async def test_check_auth_returns_false_when_not_authenticated() -> None:
+    client = WeChatClient()
+    assert await client.check_auth() is False
+
+
+@pytest.mark.asyncio
+async def test_check_auth_returns_true_when_ret_zero(monkeypatch) -> None:
+    class _Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"base_resp": {"ret": 0}}
+
+    class _FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def get(self, *args, **kwargs):
+            return _Response()
+
+    monkeypatch.setattr("wechat_oa_reader.client.httpx.AsyncClient", _FakeAsyncClient)
+    client = WeChatClient(token="t", cookie="c")
+    assert await client.check_auth() is True
+
+
+@pytest.mark.asyncio
+async def test_check_auth_returns_false_when_ret_nonzero(monkeypatch) -> None:
+    class _Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"base_resp": {"ret": 200003}}
+
+    class _FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def get(self, *args, **kwargs):
+            return _Response()
+
+    monkeypatch.setattr("wechat_oa_reader.client.httpx.AsyncClient", _FakeAsyncClient)
+    client = WeChatClient(token="t", cookie="c")
+    assert await client.check_auth() is False
+
+
+@pytest.mark.asyncio
+async def test_check_auth_returns_false_on_network_error(monkeypatch) -> None:
+    class _FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return None
+
+        async def get(self, *args, **kwargs):
+            raise httpx.ConnectError("connection failed")
+
+    monkeypatch.setattr("wechat_oa_reader.client.httpx.AsyncClient", _FakeAsyncClient)
+    client = WeChatClient(token="t", cookie="c")
+    assert await client.check_auth() is False

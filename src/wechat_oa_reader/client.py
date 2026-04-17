@@ -1,4 +1,4 @@
-﻿# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
 import json
@@ -42,6 +42,40 @@ class WeChatClient:
             "Referer": "https://mp.weixin.qq.com/",
             "Cookie": self._cookie or "",
         }
+
+    async def check_auth(self) -> bool:
+        """Probe WeChat MP to verify token+cookie are still valid.
+
+        Sends a minimal searchbiz request (count=1, empty query).
+        Returns True iff base_resp.ret == 0. Returns False on network
+        errors, HTTP errors, or non-zero base_resp.ret (= token expired
+        / invalidated). Never raises.
+        """
+        if not self.is_authenticated:
+            return False
+
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(
+                    "https://mp.weixin.qq.com/cgi-bin/searchbiz",
+                    params={
+                        "action": "search_biz",
+                        "token": self._token,
+                        "lang": "zh_CN",
+                        "f": "json",
+                        "ajax": 1,
+                        "query": "",
+                        "begin": 0,
+                        "count": 1,
+                    },
+                    headers=self._make_headers(),
+                )
+                response.raise_for_status()
+                result = response.json()
+        except (httpx.HTTPError, json.JSONDecodeError):
+            return False
+
+        return result.get("base_resp", {}).get("ret") == 0
 
     async def search_accounts(self, query: str, count: int = 5) -> list[Account]:
         self._require_auth()

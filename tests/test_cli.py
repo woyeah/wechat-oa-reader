@@ -17,12 +17,47 @@ def test_status_no_credentials(monkeypatch) -> None:
 
 
 def test_status_with_credentials(monkeypatch) -> None:
+    async def _check_auth(self) -> bool:
+        return True
+
     creds = Credentials(token="t", cookie="c", nickname="nick", fakeid="f", expire_time=123)
     monkeypatch.setattr("wechat_oa_reader.cli.load_credentials", lambda: creds)
+    monkeypatch.setattr("wechat_oa_reader.cli.WeChatClient.check_auth", _check_auth)
     runner = CliRunner()
     result = runner.invoke(cli, ["status"])
     assert result.exit_code == 0
     assert '"nickname": "nick"' in result.output
+    assert '"live_check": "valid"' in result.output
+
+
+def test_status_with_credentials_no_live(monkeypatch) -> None:
+    class _UnexpectedClient:
+        def __init__(self, *args, **kwargs):
+            raise AssertionError("WeChatClient should not be instantiated when --no-live is set")
+
+    creds = Credentials(token="t", cookie="c", nickname="nick", fakeid="f", expire_time=123)
+    monkeypatch.setattr("wechat_oa_reader.cli.load_credentials", lambda: creds)
+    monkeypatch.setattr("wechat_oa_reader.cli.WeChatClient", _UnexpectedClient)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["status", "--no-live"])
+    assert result.exit_code == 0
+    assert '"nickname": "nick"' in result.output
+    assert '"live_check"' not in result.output
+
+
+def test_status_with_credentials_live_expired(monkeypatch) -> None:
+    async def _check_auth(self) -> bool:
+        return False
+
+    creds = Credentials(token="t", cookie="c", nickname="nick", fakeid="f", expire_time=123)
+    monkeypatch.setattr("wechat_oa_reader.cli.load_credentials", lambda: creds)
+    monkeypatch.setattr("wechat_oa_reader.cli.WeChatClient.check_auth", _check_auth)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["status"])
+    assert result.exit_code == 0
+    assert '"live_check": "expired"' in result.output
 
 
 def test_login_manual(monkeypatch) -> None:
