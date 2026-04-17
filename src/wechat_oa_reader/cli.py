@@ -1,4 +1,4 @@
-﻿# SPDX-License-Identifier: AGPL-3.0-only
+# SPDX-License-Identifier: AGPL-3.0-only
 from __future__ import annotations
 
 import asyncio
@@ -131,21 +131,29 @@ def fetch(url: str | None, batch_file: Path | None, output: Path | None, as_text
 
 
 @cli.command()
-def status() -> None:
+@click.option("--live/--no-live", default=True, help="Check authentication with a live server probe")
+def status(live: bool) -> None:
     """Show credential status."""
 
     creds = load_credentials()
     if not creds:
         click.echo("Not authenticated")
         return
+
+    payload: dict[str, object] = {
+        "authenticated": True,
+        "nickname": creds.nickname,
+        "fakeid": creds.fakeid,
+        "expire_time": creds.expire_time,
+    }
+
+    if live:
+        client = WeChatClient(token=creds.token, cookie=creds.cookie)
+        payload["live_check"] = "valid" if asyncio.run(client.check_auth()) else "expired"
+
     click.echo(
         json.dumps(
-            {
-                "authenticated": True,
-                "nickname": creds.nickname,
-                "fakeid": creds.fakeid,
-                "expire_time": creds.expire_time,
-            },
+            payload,
             ensure_ascii=False,
             indent=2,
         )
