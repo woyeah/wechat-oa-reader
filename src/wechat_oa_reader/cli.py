@@ -4,8 +4,10 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import urllib.parse
 from pathlib import Path
+from typing import Literal
 
 import click
 
@@ -14,6 +16,39 @@ from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
 from .models import Credentials
 from .weibo import WeiboClient
+
+try:
+    from .docx_writer import article_to_docx
+except ImportError:
+    article_to_docx = None
+
+_DOCX_DEPENDENCY_ERROR = (
+    "docx export requires python-docx, beautifulsoup4 and pillow. "
+    "Reinstall: uv pip install -e ."
+)
+_INVALID_WINDOWS_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*]')
+
+
+def _infer_fetch_format(
+    output: Path | None,
+    explicit_format: str | None,
+    as_text: bool,
+) -> Literal["text", "json", "docx"]:
+    if explicit_format in {"text", "json", "docx"}:
+        return explicit_format
+    if output and output.suffix.lower() == ".docx":
+        return "docx"
+    if as_text:
+        return "text"
+    return "json"
+
+
+def _sanitize_docx_filename(title: str | None, index: int) -> str:
+    cleaned = _INVALID_WINDOWS_FILENAME_CHARS.sub("", (title or "").strip())
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" .")
+    if len(cleaned) > 80:
+        cleaned = cleaned[:80].rstrip(" .")
+    return cleaned or f"article_{index}"
 
 
 def _validate_urls(urls: list[str]) -> list[str]:
@@ -104,23 +139,65 @@ def articles(fakeid: str, count: int, offset: int, keyword: str | None) -> None:
 @click.argument("url", required=False)
 @click.option("--batch", "batch_file", type=click.Path(exists=True, path_type=Path), default=None)
 @click.option("-o", "output", type=click.Path(path_type=Path), default=None)
+@click.option(
+    "-f",
+    "--format",
+    "output_format",
+    type=click.Choice(["text", "json", "docx"]),
+    default=None,
+    help="Output format: text, json, or docx",
+)
 @click.option("--text", "as_text", is_flag=True, help="Output plain text only")
-def fetch(url: str | None, batch_file: Path | None, output: Path | None, as_text: bool) -> None:
+def fetch(
+    url: str | None,
+    batch_file: Path | None,
+    output: Path | None,
+    output_format: str | None,
+    as_text: bool,
+) -> None:
     """Fetch one or multiple articles."""
 
     client = _load_client_or_exit()
+    resolved_format = _infer_fetch_format(output=output, explicit_format=output_format, as_text=as_text)
+
+    if resolved_format == "docx" and article_to_docx is None:
+        raise click.ClickException(_DOCX_DEPENDENCY_ERROR)
 
     if batch_file:
         urls = _validate_urls(batch_file.read_text(encoding="utf-8").splitlines())
         items = asyncio.run(client.fetch_articles(urls))
-        payload = [item.plain_text if as_text else item.model_dump() for item in items]
+        if resolved_format == "docx":
+            if output is None:
+                raise click.ClickException("docx batch export requires -o <dir>")
+            if output.exists() and not output.is_dir():
+                raise click.ClickException("Batch docx output path must be a directory.")
+            output.mkdir(parents=True, exist_ok=True)
+
+            for index, item in enumerate(items, start=1):
+                filename = _sanitize_docx_filename(item.title, index)
+                target = output / f"{filename}.docx"
+                asyncio.run(article_to_docx(item, target))
+                click.echo(f"Saved to {target}")
+            return
+
+        payload = [item.plain_text if resolved_format == "text" else item.model_dump() for item in items]
     else:
         if not url:
             raise click.ClickException("Provide URL or --batch file")
         item = asyncio.run(client.fetch_article(url))
         if item is None:
             raise click.ClickException("Fetch failed")
-        payload = item.plain_text if as_text else item.model_dump()
+
+        if resolved_format == "docx":
+            if output is None:
+                raise click.ClickException("docx export requires -o <file.docx>")
+            if output.exists() and output.is_dir():
+                raise click.ClickException("docx output path must be a file path.")
+            asyncio.run(article_to_docx(item, output))
+            click.echo(f"Saved to {output}")
+            return
+
+        payload = item.plain_text if resolved_format == "text" else item.model_dump()
 
     content = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False, indent=2)
     if output:
