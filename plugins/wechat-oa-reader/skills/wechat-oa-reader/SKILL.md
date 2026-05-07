@@ -90,9 +90,17 @@ $WOA fetch URL
 $WOA fetch URL -o output.txt --text
 ```
 
+**Fetch as Word document (text + inline images):**
+```bash
+$WOA fetch URL -o article.docx                    # format inferred from .docx extension
+$WOA fetch URL -f docx -o article.docx            # explicit
+```
+Use this when the user wants to keep images alongside text. Images are downloaded and embedded inline; failures degrade to `[image failed: <url>]` placeholders without aborting the export.
+
 **Batch fetch from URL list:**
 ```bash
-$WOA fetch --batch urls.txt --text
+$WOA fetch --batch urls.txt --text                # plain text concatenated to stdout/file
+$WOA fetch --batch urls.txt -o ./out -f docx      # one .docx per article in ./out (created if missing)
 ```
 
 ## Output formatting
@@ -100,6 +108,7 @@ $WOA fetch --batch urls.txt --text
 - **Search results and article lists**: Present the JSON as a markdown table to the user
 - **Article content (text)**: Show the plain text directly
 - **Article content (json)**: Show structured data or save to file as requested
+- **Article content (docx)**: Confirm the saved path and report paragraph + image counts (e.g. via `python -c "from docx import Document; d=Document('out.docx'); print(len(d.paragraphs), len(d.inline_shapes))"`)
 - **Errors**: Show the error message and suggest next steps (e.g., re-login if auth expired)
 
 ## Common workflows
@@ -112,6 +121,9 @@ $WOA fetch --batch urls.txt --text
 
 **"批量下载某公众号的文章":**
 1. check install → status → search → articles → save URLs to file → batch fetch
+
+**"把这篇微信文章保存成 Word / 带图片":**
+1. check install → status → fetch URL `-o article.docx`
 
 ## Important notes
 

@@ -48,8 +48,10 @@ wechat-oa login                          # 扫码登录
 wechat-oa login --manual --token X --cookie Y  # 手动输入凭证
 wechat-oa search "公众号名称"              # 搜索公众号
 wechat-oa articles FAKEID -n 10          # 文章列表
-wechat-oa fetch URL                      # 抓取单篇文章
+wechat-oa fetch URL                      # 抓取单篇文章（JSON）
+wechat-oa fetch URL -o article.docx      # 导出 Word（文字 + 内嵌图片）
 wechat-oa fetch --batch urls.txt -o out.json   # 批量抓取
+wechat-oa fetch --batch urls.txt -o ./out -f docx   # 批量：每篇一个 .docx
 wechat-oa status                         # 查看凭证状态
 ```
 
@@ -59,6 +61,7 @@ wechat-oa status                         # 查看凭证状态
 - **公众号搜索** — 按名称查找公众号，获取 fakeid
 - **文章列表** — 分页获取 + 关键词搜索
 - **内容提取** — 正文 HTML、纯文本、图片列表
+- **导出 Word** — `wechat-oa fetch URL -o article.docx` 生成保留文字与内嵌图片顺序的 `.docx`
 - **Chrome TLS 指纹** — curl_cffi `chrome120` 模拟，httpx 降级兜底
 - **代理轮转** — SOCKS5/HTTP 代理池，失败自动冷却
 - **异步限频** — 滑动窗口 + 文章间隔控制

@@ -48,8 +48,10 @@ wechat-oa login                          # QR code login
 wechat-oa login --manual --token X --cookie Y  # manual credentials
 wechat-oa search "account-name"          # search accounts
 wechat-oa articles FAKEID -n 10          # list articles
-wechat-oa fetch URL                      # fetch single article
+wechat-oa fetch URL                      # fetch single article (JSON)
+wechat-oa fetch URL -o article.docx      # save as Word doc with inline images
 wechat-oa fetch --batch urls.txt -o out.json   # batch fetch
+wechat-oa fetch --batch urls.txt -o ./out -f docx   # one .docx per article
 wechat-oa status                         # show credential status
 ```
 
@@ -59,6 +61,7 @@ wechat-oa status                         # show credential status
 - **Account search** — find Official Accounts by name, get fakeid
 - **Article listing** — paginated article list with keyword search
 - **Content extraction** — HTML, plain text, and image list from any article
+- **Word export** — `wechat-oa fetch URL -o article.docx` produces a `.docx` with text and inline images in original order
 - **Chrome TLS fingerprinting** — curl_cffi with `chrome120` impersonation, httpx fallback
 - **Proxy rotation** — SOCKS5/HTTP proxy pool with failure cooldown
 - **Async rate limiting** — sliding window + per-article interval
