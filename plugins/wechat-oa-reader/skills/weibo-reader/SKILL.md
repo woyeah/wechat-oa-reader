@@ -121,6 +121,7 @@ wechat-oa weibo status
 wechat-oa weibo user UID
 wechat-oa weibo posts UID -n 20
 wechat-oa weibo fetch BID [--text]
+wechat-oa weibo article ARTICLE_ID [--text]
 wechat-oa weibo comments POST_ID -n 20
 wechat-oa weibo search "关键词"
 ```
