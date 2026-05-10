@@ -80,10 +80,13 @@ async def send_image_handler(client, store, *, image_base64: str, filename: str 
 
 
 async def list_users_handler(client, store, *, department_id: int = 1) -> str:
-    """List cached users."""
-    _ = client
-    _ = department_id
-    users = store.list_users()
+    """List users — fetch from WeCom API, cache to store, fallback to cache on error."""
+    try:
+        users = await client.list_department_users(department_id)
+        for u in users:
+            store.save_user(u)
+    except Exception:
+        users = store.list_users()
     if not users:
         return "No users found"
     lines = [f"- {u.name} ({u.userid}) {u.department or ''}" for u in users]

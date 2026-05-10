@@ -114,3 +114,48 @@ class WeComClient:
                 data = response.json()
                 raise RuntimeError(str(data.get("errmsg", "Unknown error")))
             return response.content
+
+    async def get_user(self, userid: str) -> "WeComUser":
+        """Get user info by userid from WeCom address book API."""
+        from .models import WeComUser
+
+        token = await self.get_access_token()
+        url = f"{self._base_url}/cgi-bin/user/get?access_token={token}&userid={userid}"
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
+            response = await client.get(url)
+            data = response.json()
+        if data.get("errcode") != 0:
+            raise RuntimeError(str(data.get("errmsg", "Unknown error")))
+        dept = data.get("department", [])
+        return WeComUser(
+            userid=data["userid"],
+            name=data.get("name", ""),
+            department=",".join(str(d) for d in dept) if dept else None,
+            avatar=data.get("avatar"),
+        )
+
+    async def list_department_users(self, department_id: int = 1) -> list["WeComUser"]:
+        """List users in a department from WeCom address book API."""
+        from .models import WeComUser
+
+        token = await self.get_access_token()
+        url = (
+            f"{self._base_url}/cgi-bin/user/simplelist"
+            f"?access_token={token}&department_id={department_id}"
+        )
+        async with httpx.AsyncClient(timeout=20.0, headers=self._extra_headers) as client:
+            response = await client.get(url)
+            data = response.json()
+        if data.get("errcode") != 0:
+            raise RuntimeError(str(data.get("errmsg", "Unknown error")))
+        users = []
+        for item in data.get("userlist", []):
+            dept = item.get("department", [])
+            users.append(
+                WeComUser(
+                    userid=item["userid"],
+                    name=item.get("name", ""),
+                    department=",".join(str(d) for d in dept) if dept else None,
+                )
+            )
+        return users
