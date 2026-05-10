@@ -169,24 +169,38 @@ class TestSendMessage:
 
 
 class TestListUsers:
-    async def test_list_users_with_results(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
-        mock_store.list_users.return_value = [
+    async def test_list_users_fetches_from_api(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        api_users = [
             WeComUser(userid="u1", name="Alice", department="Tech"),
             WeComUser(userid="u2", name="Bob", department="Ops"),
+        ]
+        mock_client.list_department_users = AsyncMock(return_value=api_users)
+
+        result = await list_users_handler(mock_client, mock_store, department_id=1)
+
+        mock_client.list_department_users.assert_awaited_once_with(1)
+        assert mock_store.save_user.call_count == 2
+        assert "Alice" in result
+        assert "Bob" in result
+
+    async def test_list_users_api_error_falls_back_to_cache(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_client.list_department_users = AsyncMock(side_effect=RuntimeError("api error"))
+        mock_store.list_users.return_value = [
+            WeComUser(userid="u1", name="CachedAlice", department="Tech"),
         ]
 
         result = await list_users_handler(mock_client, mock_store, department_id=1)
 
+        mock_client.list_department_users.assert_awaited_once_with(1)
         mock_store.list_users.assert_called_once()
-        assert "Alice" in result
-        assert "Bob" in result
+        assert "CachedAlice" in result
 
-    async def test_list_users_empty(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+    async def test_list_users_api_error_no_cache(self, mock_client: MagicMock, mock_store: MagicMock) -> None:
+        mock_client.list_department_users = AsyncMock(side_effect=RuntimeError("api error"))
         mock_store.list_users.return_value = []
 
         result = await list_users_handler(mock_client, mock_store, department_id=1)
 
-        mock_store.list_users.assert_called_once()
         assert "no" in result.lower() and "user" in result.lower()
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 
 from wechat_oa_reader.wecom import WeComClient
+from wechat_oa_reader.models import WeComUser
 
 
 class _MockResponse:
@@ -245,3 +246,88 @@ async def test_extra_headers_passed(monkeypatch) -> None:
 
     assert len(init_kwargs_captured) >= 1
     assert init_kwargs_captured[0].get("headers") == {"X-Proxy-Key": "secret"}
+
+
+@pytest.mark.asyncio
+async def test_get_user(monkeypatch) -> None:
+    _reset_httpx_mock()
+    _MockAsyncClient.get_responses = [
+        {"errcode": 0, "access_token": "tok", "expires_in": 7200},
+        {
+            "errcode": 0,
+            "userid": "zhangsan",
+            "name": "张三",
+            "department": [1, 2],
+            "avatar": "https://example.com/avatar.png",
+        },
+    ]
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _MockAsyncClient)
+
+    client = WeComClient(corp_id="corp-1", agent_secret="secret-1", agent_id="1000001")
+    user = await client.get_user("zhangsan")
+
+    assert user.userid == "zhangsan"
+    assert user.name == "张三"
+    assert user.department == "1,2"
+    assert user.avatar == "https://example.com/avatar.png"
+    assert len(_MockAsyncClient.get_calls) == 2
+    assert "user/get" in _MockAsyncClient.get_calls[1]["url"]
+    assert "userid=zhangsan" in _MockAsyncClient.get_calls[1]["url"]
+
+
+@pytest.mark.asyncio
+async def test_get_user_error(monkeypatch) -> None:
+    _reset_httpx_mock()
+    _MockAsyncClient.get_responses = [
+        {"errcode": 0, "access_token": "tok", "expires_in": 7200},
+        {"errcode": 60111, "errmsg": "userid not found"},
+    ]
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _MockAsyncClient)
+
+    client = WeComClient(corp_id="corp-1", agent_secret="secret-1", agent_id="1000001")
+    with pytest.raises(RuntimeError, match="userid not found"):
+        await client.get_user("nobody")
+
+
+@pytest.mark.asyncio
+async def test_list_department_users(monkeypatch) -> None:
+    _reset_httpx_mock()
+    _MockAsyncClient.get_responses = [
+        {"errcode": 0, "access_token": "tok", "expires_in": 7200},
+        {
+            "errcode": 0,
+            "userlist": [
+                {"userid": "u1", "name": "Alice", "department": [1]},
+                {"userid": "u2", "name": "Bob", "department": [1, 3]},
+            ],
+        },
+    ]
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _MockAsyncClient)
+
+    client = WeComClient(corp_id="corp-1", agent_secret="secret-1", agent_id="1000001")
+    users = await client.list_department_users(1)
+
+    assert len(users) == 2
+    assert users[0].userid == "u1"
+    assert users[0].name == "Alice"
+    assert users[0].department == "1"
+    assert users[1].userid == "u2"
+    assert users[1].name == "Bob"
+    assert users[1].department == "1,3"
+    assert len(_MockAsyncClient.get_calls) == 2
+    assert "user/simplelist" in _MockAsyncClient.get_calls[1]["url"]
+    assert "department_id=1" in _MockAsyncClient.get_calls[1]["url"]
+
+
+@pytest.mark.asyncio
+async def test_list_department_users_error(monkeypatch) -> None:
+    _reset_httpx_mock()
+    _MockAsyncClient.get_responses = [
+        {"errcode": 0, "access_token": "tok", "expires_in": 7200},
+        {"errcode": 60123, "errmsg": "invalid department"},
+    ]
+    monkeypatch.setattr("wechat_oa_reader.wecom.httpx.AsyncClient", _MockAsyncClient)
+
+    client = WeComClient(corp_id="corp-1", agent_secret="secret-1", agent_id="1000001")
+    with pytest.raises(RuntimeError, match="invalid department"):
+        await client.list_department_users(999)
