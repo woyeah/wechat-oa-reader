@@ -324,6 +324,49 @@ async def test_list_reports_with_date_range() -> None:
 
 
 @pytest.mark.asyncio
+async def test_list_reports_single_sided_since_fills_default_end() -> None:
+    """cninfo rejects half-open ranges like '2023-01-01~', so we fill in today."""
+    client = CninfoClient()
+    with patch.object(
+        client, "_post", new=AsyncMock(return_value=_announcements_payload(0))
+    ) as mock_post:
+        await client.list_reports(
+            code="000001",
+            org_id="gssz0000001",
+            report_type="annual",
+            plate="szse",
+            start_date="2023-01-01",
+        )
+
+    se_date = mock_post.await_args.kwargs["data"]["seDate"]
+    assert se_date.startswith("2023-01-01~")
+    end = se_date.split("~", 1)[1]
+    # Should be a YYYY-MM-DD date, not empty
+    assert len(end) == 10
+    assert end[4] == "-" and end[7] == "-"
+
+
+@pytest.mark.asyncio
+async def test_list_reports_single_sided_until_fills_default_start() -> None:
+    client = CninfoClient()
+    with patch.object(
+        client, "_post", new=AsyncMock(return_value=_announcements_payload(0))
+    ) as mock_post:
+        await client.list_reports(
+            code="000001",
+            org_id="gssz0000001",
+            report_type="annual",
+            plate="szse",
+            end_date="2025-12-31",
+        )
+
+    se_date = mock_post.await_args.kwargs["data"]["seDate"]
+    assert se_date.endswith("~2025-12-31")
+    start = se_date.split("~", 1)[0]
+    assert len(start) == 10
+
+
+@pytest.mark.asyncio
 async def test_list_reports_pagination_and_has_more() -> None:
     client = CninfoClient()
     payload = _announcements_payload(total=25)

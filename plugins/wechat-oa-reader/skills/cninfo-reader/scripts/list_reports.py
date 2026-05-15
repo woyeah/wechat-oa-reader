@@ -110,11 +110,12 @@ def main(argv=None):
         if not column:
             raise ValueError(f"Unknown plate {plate!r}")
 
+        # cninfo API rejects single-sided ranges; fill the other bound.
         se_date = ""
-        if args.start_date and args.end_date:
-            se_date = f"{args.start_date}~{args.end_date}"
-        elif args.start_date or args.end_date:
-            se_date = f"{args.start_date or ''}~{args.end_date or ''}"
+        if args.start_date or args.end_date:
+            effective_start = args.start_date or "1990-01-01"
+            effective_end = args.end_date or datetime.now(_CST).strftime("%Y-%m-%d")
+            se_date = f"{effective_start}~{effective_end}"
 
         body = {
             "pageNum": args.page,

@@ -148,11 +148,14 @@ class CninfoClient:
 
         resolved_column = self._resolve_column(column=column, plate=plate)
 
+        # cninfo's API rejects single-sided ranges like "2023-01-01~" (returns
+        # 0 hits). When only one bound is given, fill the other with a sane
+        # default so the user's intent ("since X" / "until Y") is preserved.
         se_date = ""
-        if start_date and end_date:
-            se_date = f"{start_date}~{end_date}"
-        elif start_date or end_date:
-            se_date = f"{start_date or ''}~{end_date or ''}"
+        if start_date or end_date:
+            effective_start = start_date or "1990-01-01"
+            effective_end = end_date or datetime.now(_CST).strftime("%Y-%m-%d")
+            se_date = f"{effective_start}~{effective_end}"
 
         body: dict[str, Any] = {
             "pageNum": page,
