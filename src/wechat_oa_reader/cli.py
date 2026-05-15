@@ -15,6 +15,7 @@ from . import __version__
 from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
 from .models import Credentials
+from .cninfo import CninfoClient
 from .weibo import WeiboClient
 
 try:
@@ -319,4 +320,110 @@ def weibo_search(query: str) -> None:
     users = asyncio.run(client.search_users(query))
     click.echo(
         json.dumps([user.model_dump() for user in users], ensure_ascii=False, indent=2, default=str)
+    )
+
+
+@cli.group()
+def cninfo() -> None:
+    """巨潮资讯 (cninfo.com.cn) commands — public listed-company disclosures."""
+
+
+@cninfo.command("search")
+@click.argument("query")
+@click.option("-n", "max_results", default=10, type=int, help="Max results to return")
+def cninfo_search(query: str, max_results: int) -> None:
+    """Search listed companies by code or name."""
+    client = CninfoClient()
+    stocks = asyncio.run(client.search_company(query, max_results=max_results))
+    click.echo(
+        json.dumps(
+            [s.model_dump() for s in stocks],
+            ensure_ascii=False,
+            indent=2,
+            default=str,
+        )
+    )
+
+
+@cninfo.command("reports")
+@click.argument("code")
+@click.option(
+    "--type",
+    "report_type",
+    type=click.Choice(["annual", "semiannual", "q1", "q3"]),
+    required=True,
+    help="Report period: annual (年报) / semiannual (半年报) / q1 (一季报) / q3 (三季报)",
+)
+@click.option("--org-id", default=None, help="Organization ID. Auto-resolved via search if omitted.")
+@click.option("--plate", default=None, help="Exchange plate: szse / sse / bj. Auto-resolved if omitted.")
+@click.option("--column", default=None, help="Override the request column (advanced)")
+@click.option("--since", "start_date", default=None, help="Start date YYYY-MM-DD")
+@click.option("--until", "end_date", default=None, help="End date YYYY-MM-DD")
+@click.option("--page", default=1, type=int)
+@click.option("-n", "page_size", default=30, type=int)
+def cninfo_reports(
+    code: str,
+    report_type: str,
+    org_id: str | None,
+    plate: str | None,
+    column: str | None,
+    start_date: str | None,
+    end_date: str | None,
+    page: int,
+    page_size: int,
+) -> None:
+    """List periodic reports (年报 / 半年报 / 一季报 / 三季报) for a stock CODE."""
+    client = CninfoClient()
+
+    async def _run() -> str:
+        resolved_org_id = org_id
+        resolved_plate = plate
+        if not resolved_org_id or not resolved_plate:
+            stocks = await client.search_company(code)
+            match = next((s for s in stocks if s.code == code), None)
+            if not match:
+                raise click.ClickException(
+                    f"Stock {code!r} not found. Pass --org-id and --plate explicitly."
+                )
+            resolved_org_id = resolved_org_id or match.org_id
+            resolved_plate = resolved_plate or match.plate
+            if not resolved_plate and not column:
+                raise click.ClickException(
+                    f"Cannot infer plate for {code!r}; pass --plate or --column."
+                )
+
+        result = await client.list_reports(
+            code=code,
+            org_id=resolved_org_id,
+            report_type=report_type,
+            plate=resolved_plate,
+            column=column,
+            start_date=start_date,
+            end_date=end_date,
+            page=page,
+            page_size=page_size,
+        )
+        return json.dumps(result.model_dump(), ensure_ascii=False, indent=2, default=str)
+
+    click.echo(asyncio.run(_run()))
+
+
+@cninfo.command("download")
+@click.argument("adjunct_url")
+@click.option("-o", "output", default=None, type=click.Path(), help="Output PDF path")
+def cninfo_download(adjunct_url: str, output: str | None) -> None:
+    """Download a report PDF given its adjunctUrl or full static.cninfo.com.cn URL."""
+    client = CninfoClient()
+    if output:
+        out_path = Path(output)
+    else:
+        basename = adjunct_url.rstrip("/").split("/")[-1] or "report.pdf"
+        out_path = Path(basename)
+    size = asyncio.run(client.download_report(adjunct_url, out_path))
+    click.echo(
+        json.dumps(
+            {"saved": str(out_path), "size": size},
+            ensure_ascii=False,
+            indent=2,
+        )
     )

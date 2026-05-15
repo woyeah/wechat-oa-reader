@@ -1,7 +1,7 @@
 {
   "name": "wechat-oa-reader",
-  "description": "Read and fetch WeChat Official Account articles, Knowledge Planet (知识星球/zsxq) content, and Weibo (微博) posts — search accounts, list articles, fetch full content, browse zsxq topics, and read Weibo user posts and comments directly from Claude Code",
-  "version": "0.3.0",
+  "description": "Read and fetch content from WeChat Official Accounts, Knowledge Planet (知识星球/zsxq), Weibo (微博), and 巨潮资讯 (cninfo) — search accounts/companies, list articles & periodic reports, fetch full content, browse zsxq topics, read Weibo posts/comments, and download A-share company 年报/半年报/季报 directly from Claude Code",
+  "version": "0.4.0",
   "author": {
     "name": "woyeah",
     "url": "https://github.com/woyeah"
@@ -17,6 +17,11 @@
     "zsxq",
     "knowledge-planet",
     "weibo",
-    "微博"
+    "微博",
+    "cninfo",
+    "巨潮资讯",
+    "annual-report",
+    "年报",
+    "a-share"
   ]
 }

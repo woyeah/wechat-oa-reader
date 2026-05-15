@@ -69,6 +69,7 @@ wechat-oa status                         # show credential status
 - **Token management** — 4-day expiry tracking, credential save/load
 - **Knowledge Planet (zsxq)** — browse groups, list topics, fetch content, download attachments (cookie auth via `.env`)
 - **WeCom (企业微信)** — `WeComClient` for sending text and image messages via WeCom API, with automatic token caching
+- **Cninfo (巨潮资讯)** — search A-share listed companies, list 年报/半年报/季报, download report PDFs from cninfo.com.cn (public data, no auth)
 
 ## Configuration
 
@@ -113,6 +114,8 @@ This project doubles as a standard [Claude Code Plugin](https://code.claude.com/
 - "Batch download articles from an account"
 - "帮我看看知识星球的最新帖子"
 - "List topics from my Knowledge Planet group"
+- "Download 平安银行 (000001) 2024 年报"
+- "List all semi-annual reports of 贵州茅台 since 2020"
 
 ## Use with Other AI CLIs
 

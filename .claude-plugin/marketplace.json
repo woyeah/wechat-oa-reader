@@ -9,9 +9,9 @@
   "plugins": [
     {
       "name": "wechat-oa-reader",
-      "description": "Read and fetch WeChat Official Account articles, Knowledge Planet (知识星球/zsxq) content, and Weibo (微博) posts — search accounts, list articles, browse topics, read Weibo posts and comments directly from Claude Code",
+      "description": "Read and fetch content from WeChat Official Accounts, Knowledge Planet (知识星球/zsxq), Weibo (微博), and 巨潮资讯 (cninfo) — search accounts/companies, list articles & A-share periodic reports, fetch full content, and download 年报/半年报/季报 directly from Claude Code",
       "source": "./plugins/wechat-oa-reader",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "category": "productivity",
       "homepage": "https://github.com/woyeah/wechat-oa-reader",
       "tags": [
@@ -22,7 +22,11 @@
         "zsxq",
         "knowledge-planet",
         "weibo",
-        "微博"
+        "微博",
+        "cninfo",
+        "巨潮资讯",
+        "annual-report",
+        "年报"
       ]
     }
   ]
