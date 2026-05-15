@@ -118,6 +118,36 @@ class WeiboArticle(BaseModel):
     uid: str | None = None
 
 
+class CninfoStock(BaseModel):
+    code: str
+    org_id: str
+    name: str
+    plate: str
+    listing_category: str | None = None
+    pinyin: str | None = None
+    delisted: bool = False
+
+
+class CninfoReport(BaseModel):
+    code: str
+    name: str
+    org_id: str
+    announcement_id: str
+    title: str
+    time: datetime
+    adjunct_url: str
+    adjunct_size: int | None = None
+    adjunct_type: str | None = None
+
+
+class CninfoReportList(BaseModel):
+    items: list[CninfoReport] = Field(default_factory=list)
+    total: int = 0
+    page: int = 1
+    page_size: int = 30
+    has_more: bool = False
+
+
 class WeComUser(BaseModel):
     userid: str
     name: str

@@ -3,11 +3,15 @@ from __future__ import annotations
 
 from .auth import load_credentials, login_with_qrcode, save_credentials
 from .client import WeChatClient
+from .cninfo import CninfoClient
 from .models import (
     Account,
     ArticleContent,
     ArticleList,
     ArticleSummary,
+    CninfoReport,
+    CninfoReportList,
+    CninfoStock,
     Credentials,
     ProxyConfig,
     RateLimitConfig,
@@ -49,4 +53,8 @@ __all__ = [
     "WeiboArticle",
     "WeiboComment",
     "WeiboCommentList",
+    "CninfoClient",
+    "CninfoStock",
+    "CninfoReport",
+    "CninfoReportList",
 ]

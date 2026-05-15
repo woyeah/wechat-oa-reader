@@ -1,0 +1,40 @@
+{
+  "skill_name": "cninfo-reader",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我查一下平安银行（000001）最近的年报",
+      "expected_output": "返回平安银行的近期年度报告列表，以表格形式展示标题、日期、PDF 大小",
+      "files": [],
+      "assertions": [
+        {"text": "Output contains a markdown table with rows", "type": "regex", "pattern": "\\|.*\\|"},
+        {"text": "Output mentions 年度报告 or annual report", "type": "regex", "pattern": "(年度报告|annual)"},
+        {"text": "Output references 000001 or 平安银行", "type": "regex", "pattern": "(000001|平安银行)"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error_code\""}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "下载贵州茅台 600519 的 2024 年度报告 PDF",
+      "expected_output": "找到对应的 adjunctUrl 并下载 PDF 到本地，报告保存路径",
+      "files": [],
+      "assertions": [
+        {"text": "Output mentions the saved file path", "type": "regex", "pattern": "(saved|保存|\\.pdf|\\.PDF)"},
+        {"text": "Output mentions 600519 or 贵州茅台", "type": "regex", "pattern": "(600519|贵州茅台)"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error_code\""}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "帮我看看北交所七丰精工（873169）的所有季报",
+      "expected_output": "调用 list_reports 至少两次（q1 和 q3），合并展示季报列表",
+      "files": [],
+      "assertions": [
+        {"text": "Output contains a markdown table with rows", "type": "regex", "pattern": "\\|.*\\|"},
+        {"text": "Output mentions 季度 or quarterly", "type": "regex", "pattern": "(季度|季报|quarterly|q1|q3)"},
+        {"text": "Output references 873169 or 七丰精工", "type": "regex", "pattern": "(873169|七丰精工)"},
+        {"text": "Output is not a JSON error object", "type": "not_contains", "value": "\"error_code\""}
+      ]
+    }
+  ]
+}
